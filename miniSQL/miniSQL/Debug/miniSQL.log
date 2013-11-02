@@ -1,32 +1,69 @@
-﻿Build started 11/1/2013 4:35:21 PM.
-     1>Project "E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\miniSQL\miniSQL.vcxproj" on node 2 (Rebuild target(s)).
+﻿Build started 11/2/2013 4:49:18 PM.
+     1>Project "E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\miniSQL\miniSQL.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         D:\Software\IDE\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt BufferManager.cpp CatalogManager.cpp RecordBufferManager.cpp RecordManager.cpp
-         RecordManager.cpp
-     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.h(18): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(110) : see declaration of 'strcpy'
-     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.h(26): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(115) : see declaration of 'strcat'
-         RecordBufferManager.cpp
-     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.h(18): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(110) : see declaration of 'strcpy'
-     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.h(26): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(115) : see declaration of 'strcat'
+         D:\Software\IDE\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt BufferManager.cpp CatalogManager.cpp readFile.cpp RecordBufferManager.cpp RecordManager.cpp
+         readFile.cpp
          CatalogManager.cpp
-         BufferManager.cpp
-     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.h(18): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.hpp(18): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(110) : see declaration of 'strcpy'
-     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.h(26): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.hpp(26): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(115) : see declaration of 'strcat'
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(22): error C2061: syntax error : identifier 'MetaRelation'
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(27): error C2143: syntax error : missing ';' before '*'
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(27): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(22): error C2065: 'relation' : undeclared identifier
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(22): error C2614: 'catalog::IndexInfo' : illegal member initialization: 'relation' is not a base or member
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(72): error C3867: 'std::basic_string<_Elem,_Traits,_Alloc>::c_str': function call missing argument list; use '&std::basic_string<_Elem,_Traits,_Alloc>::c_str' to create a pointer to member
+                 with
+                 [
+                     _Elem=char,
+                     _Traits=std::char_traits<char>,
+                     _Alloc=std::allocator<char>
+                 ]
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(79): error C2661: 'catalog::IndexInfo::IndexInfo' : no overloaded function takes 3 arguments
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(79): error C2228: left of '.first' must have class/struct/union
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(86): error C2039: 'relation' : is not a member of 'catalog::IndexInfo'
+                 e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(20) : see declaration of 'catalog::IndexInfo'
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(87): error C3536: 'relation': cannot be used before it is initialized
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(87): error C2227: left of '->indexes' must point to class/struct/union/generic type
+                 type is 'int'
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(87): error C2228: left of '.erase' must have class/struct/union
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(89): error C3867: 'std::basic_string<_Elem,_Traits,_Alloc>::c_str': function call missing argument list; use '&std::basic_string<_Elem,_Traits,_Alloc>::c_str' to create a pointer to member
+                 with
+                 [
+                     _Elem=char,
+                     _Traits=std::char_traits<char>,
+                     _Alloc=std::allocator<char>
+                 ]
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(90): error C3536: 'relation': cannot be used before it is initialized
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(90): error C2227: left of '->name' must point to class/struct/union/generic type
+                 type is 'int'
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.cpp(48): error C3867: 'std::_Tree<_Traits>::size': function call missing argument list; use '&std::_Tree<_Traits>::size' to create a pointer to member
+                 with
+                 [
+                     _Traits=std::_Tmap_traits<std::string,catalog::Field,std::less<std::string>,std::allocator<std::pair<const std::string,catalog::Field>>,false>
+                 ]
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.cpp(78): warning C4172: returning address of local variable or temporary
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.cpp(96): error C2039: 'relation' : is not a member of 'catalog::IndexInfo'
+                 e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.hpp(20) : see declaration of 'catalog::IndexInfo'
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.cpp(96): error C2227: left of '->name' must point to class/struct/union/generic type
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\catalogmanager.cpp(112): error C2661: 'catalog::IndexInfo::IndexInfo' : no overloaded function takes 3 arguments
+         BufferManager.cpp
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.hpp(18): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(110) : see declaration of 'strcpy'
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.hpp(26): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(115) : see declaration of 'strcat'
          Generating Code...
-       Lib:
-         D:\Software\IDE\Microsoft Visual Studio 11.0\VC\bin\Lib.exe /OUT:"E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\Debug\miniSQL.lib" /NOLOGO Debug\BufferManager.obj
-         Debug\CatalogManager.obj
-         Debug\RecordBufferManager.obj
-         Debug\RecordManager.obj
-         miniSQL.vcxproj -> E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\Debug\miniSQL.lib
-     1>Done Building Project "E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\miniSQL\miniSQL.vcxproj" (Rebuild target(s)).
+         Compiling...
+         RecordBufferManager.cpp
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\recordbuffermanager.cpp(1): fatal error C1083: Cannot open include file: 'RecordBufferManager.h': No such file or directory
+         Generating Code...
+         Compiling...
+         RecordManager.cpp
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\recordmanager.cpp(1): fatal error C1083: Cannot open include file: 'RecordManager.h': No such file or directory
+         Generating Code...
+     1>Done Building Project "E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\miniSQL\miniSQL.vcxproj" (Build target(s)) -- FAILED.
 
-Build succeeded.
+Build FAILED.
 
-Time Elapsed 00:00:05.97
+Time Elapsed 00:00:15.58

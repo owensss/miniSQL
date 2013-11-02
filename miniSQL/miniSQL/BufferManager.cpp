@@ -47,7 +47,7 @@ bool BufferManager::unlock(const std::string& filePath){
 	}
 }
 
-void* BufferManager::read(const std::string& filePath){
+BufferManager::DataPtr BufferManager::read(const std::string& filePath){
 	auto block = getBlock(filePath);
 	if(block != list.end()){//inside buffer
 		block->pin = true;

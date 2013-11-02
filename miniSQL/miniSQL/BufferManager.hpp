@@ -21,6 +21,7 @@ namespace buffer{
 class BufferManager
 {
 public:
+	typedef byte * DataPtr;
 	enum {BLOCK_SIZE = 4 * 1024}; //block_size = 4K
 public: 
 	BufferManager(void);
@@ -39,7 +40,7 @@ public:
 	  *	
 	  * @return: the pointer to the address of block in the memory  
 	  */
-	void* read(const std::string& filePath);
+	DataPtr read(const std::string& filePath);
 
 	/** write data in memory
 	  * will not save to the file unless user call writeBack function
@@ -94,11 +95,11 @@ private:
 
 	/** convert block inside buffer to its address
 	  */
-	void *getAddr(block_iter ptrBlock) const{
+	DataPtr getAddr(block_iter ptrBlock) const{
 		return (byte *)contents + BLOCK_SIZE * ptrBlock->index;
 	}
 private:
-	byte *contents;	//the whole block data in memory
+	DataPtr contents;	//the whole block data in memory
 	std::list<buffer::Block> list; 
 	//a list contain the info about block inside buffer
 };
