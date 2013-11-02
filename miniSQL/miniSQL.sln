@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniSQL", "miniSQL\miniSQL.vcxproj", "{BC7C673B-A9D4-40DE-8416-5C883E0F0F4D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BufferManagerTest", "BufferManagerTest\BufferManagerTest.vcxproj", "{D7BB1BE1-811B-4E79-81DA-861A09D04F75}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC7C673B-A9D4-40DE-8416-5C883E0F0F4D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BC7C673B-A9D4-40DE-8416-5C883E0F0F4D}.Debug|Win32.Build.0 = Debug|Win32
+		{BC7C673B-A9D4-40DE-8416-5C883E0F0F4D}.Release|Win32.ActiveCfg = Release|Win32
+		{BC7C673B-A9D4-40DE-8416-5C883E0F0F4D}.Release|Win32.Build.0 = Release|Win32
+		{D7BB1BE1-811B-4E79-81DA-861A09D04F75}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D7BB1BE1-811B-4E79-81DA-861A09D04F75}.Debug|Win32.Build.0 = Debug|Win32
+		{D7BB1BE1-811B-4E79-81DA-861A09D04F75}.Release|Win32.ActiveCfg = Release|Win32
+		{D7BB1BE1-811B-4E79-81DA-861A09D04F75}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

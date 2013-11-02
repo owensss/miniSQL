@@ -1,0 +1,23 @@
+﻿Build started 11/1/2013 4:35:27 PM.
+     1>Project "E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\BufferManagerTest\BufferManagerTest.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         D:\Software\IDE\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"D:\Software\IDE\Microsoft Visual Studio 11.0\VC\UnitTest\include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Debug\BufferManagerTest.pch" /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /FC /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.h(18): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(110) : see declaration of 'strcpy'
+     1>e:\zju\course\cs\db_design\minisql\minisql\minisql\buffermanagerexn.h(26): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(115) : see declaration of 'strcat'
+         D:\Software\IDE\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"D:\Software\IDE\Microsoft Visual Studio 11.0\VC\UnitTest\include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\BufferManagerTest.pch" /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /FC /errorReport:prompt main.cpp
+         main.cpp
+     1>e:\zju\course\cs\db_design\minisql\minisql\buffermanagertest\main.cpp(10): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 d:\software\ide\microsoft visual studio 11.0\vc\include\string.h(110) : see declaration of 'strcpy'
+       Link:
+         D:\Software\IDE\Microsoft Visual Studio 11.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\Debug\BufferManagerTest.exe" /INCREMENTAL /NOLOGO /LIBPATH:"D:\Software\IDE\Microsoft Visual Studio 11.0\VC\UnitTest\lib" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\Debug\BufferManagerTest.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\Debug\BufferManagerTest.lib" /MACHINE:X86 Debug\main.obj
+         Debug\stdafx.obj
+         E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\Debug\miniSQL.lib
+         BufferManagerTest.vcxproj -> E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\Debug\BufferManagerTest.exe
+     1>Done Building Project "E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\BufferManagerTest\BufferManagerTest.vcxproj" (Rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.97
