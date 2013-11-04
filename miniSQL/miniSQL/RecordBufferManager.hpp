@@ -1,17 +1,27 @@
 #pragma once
-#include "BufferManager.h"
-#include "CatalogManager.h"
+#include "BufferManager.hpp"
+#include "CatalogManager.hpp"
+#include <vector>
 
 namespace record{
 	//real struct mapping
+	struct Head {
+		size_t next;
+		size_t tuple_num;
+		bool terminate;
+	};
+
 	struct Tuple {
-		void* header;	//info about attributes
-		void* data;		//actual data
+	//	void* header;	//info about the tuple, null or something
+		void* data;		//actual data: int, chars, float
 	};
 
 	struct Block {
-		void* header;
-		Tuple* tuples;
+	public:
+		typedef std::vector<Tuple> TupleSet;
+	public:
+		Head* header;
+		TupleSet tuples;
 	};
 }
 

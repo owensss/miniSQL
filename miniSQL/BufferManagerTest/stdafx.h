@@ -11,4 +11,5 @@
 #include "CppUnitTest.h"
 
 // TODO: reference additional headers your program requires here
-#include "../miniSQL/BufferManager.h"
+#include "../miniSQL/BufferManager.hpp"
+#include "../miniSQL/CatalogManager.hpp"

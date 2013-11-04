@@ -1,13 +1,18 @@
 #include "CatalogManager.hpp"
-#include "readFile.h"
+#include "fileOperation.hpp"
+#include "blockReadWrite.hpp"
 #include <vector>
 
+/** directory needed
+  */
 const std::string CatalogManager::directoryName = "MetaData";
 const std::string CatalogManager::indexPath = CatalogManager::directoryName + "\\index\\";
 const std::string CatalogManager::relationPath = CatalogManager::directoryName + "\\relation\\";
 
 CatalogManager::CatalogManager(BufferManager *bufferManager):bufferManager(bufferManager)
 {
+	addAllRelationData();
+	addAllIndexData();
 }
 
 
@@ -16,112 +21,128 @@ CatalogManager::~CatalogManager(void)
 }
 
 namespace{
-typedef BufferManager::DataPtr DataPtr;
-
-/** used to manage a block's memory
+	typedef BufferManager::DataPtr DataPtr;
+/** relation: field_num, primary_key_name
+  * field: field_name, field_type, char_n, unique
   */
-struct BlockData{
-	BlockData(void){
-		data = new byte[BufferManager::BLOCK_SIZE];
-	}
-	~BlockData(){
-		delete [] data;
-	}
-	DataPtr data;
-};
 
 /** as a dataBlock for read & write
   */
-typedef catalog::Field FieldData;
-struct RelationData{
-	RelationData(){};
-	RelationData(const std::string& name, size_t field_num, const std::string&  primary_key)
-		:name(name), field_num(field_num), primary_key(primary_key){}
-	std::string name;
-	size_t field_num;
-	std::string primary_key;	//if not exists then nullptr
+struct FieldData{
+public:
+	FieldData(catalog::Field::field_type type, size_t char_n, bool unique)
+		:type(type), char_n(char_n), unique(unique){}
+	FieldData(){}
+public:
+//	[std::string name;] 
+	catalog::Field::field_type type;
+	size_t char_n;
+	uint8_t unique; //use char instead of bool
 };
+
 }
 void CatalogManager::writeRelationData(const std::string& relation_name){
 	const auto& relation = relations.at(relation_name);//get relation handle
-	BlockData block;
+	blockReadWrite::BlockData block;
 	DataPtr dest = block.data;//pointer to data to write
 
-	memcpy(dest, &RelationData(relation.name, relation.fields.size, relation.primary_key->name), sizeof(RelationData));
-	dest += sizeof(RelationData);//write in relation's data
+	{
+		size_t field_num = relation.fields.size();
+		dest = writeBuffer(dest, (DataPtr)(&field_num), sizeof(field_num));
+	}//field_num
 
-	for(const auto& field: relation.fields){
-		memcpy(dest, &field, sizeof(field));
-		dest += sizeof(field);
+	if(relation.primary_key != nullptr)
+		dest = writeStringToBuffer(dest, relation.primary_key->name); //primary key
+	else
+		dest = writeBuffer(dest, 0, sizeof(uint8_t)); //primary key is null a byte
+
+	for(const auto& field_map: relation.fields){//for all elem(map) inside fieldset
+		auto field = field_map.second;
+		dest = writeStringToBuffer(dest, field.name);//write name
+		FieldData fieldData(field.type, field.char_n, field.unique);
+		dest = writeBuffer(dest, (DataPtr)(&fieldData), sizeof(fieldData));//other data
 	}//write in fields data
 
 	std::string relationFilePath = relationPath+relation_name;
 	bufferManager->write(relationFilePath, block.data);
-	bufferManager->writeBack(relationFilePath);
+	bufferManager->writeBack(relationFilePath);//write into the memory
 	bufferManager->unlock(relationFilePath);
 }
 
-catalog::MetaRelation&& CatalogManager::readRelationData(const std::string& relation_name){
+catalog::MetaRelation CatalogManager::readRelationData(const std::string& relation_name){
 	const std::string relationFilePath = relationPath+relation_name;
-	DataPtr block = bufferManager->read(relationFilePath);
-	DataPtr source = block;//ptr to source data
-	RelationData relationData;
-	memcpy(&relationData, source, sizeof(relationData));//fill relationData struct
-	source += sizeof(RelationData);
+	DataPtr source = bufferManager->read(relationFilePath); //ptr to source data
 
-	catalog::MetaRelation::fieldSet fields;
-	for(size_t i = 0; i < relationData.field_num; i++){
-		FieldData field;
-		size_t size = sizeof(field);
-		memcpy(&field, source, sizeof(field));
-		source += sizeof(field);
+	catalog::MetaRelation relation;
+	relation.name = relation_name;
+
+	size_t field_num;
+	source = readBuffer(source, (DataPtr)&field_num, sizeof(field_num));//get field num
+	const std::string &&primary_key = readStringFromBuffer(source);
+	
+	auto &fields = relation.fields;
+	for(size_t i = 0; i < field_num; i++){
+		catalog::Field field;
+		field.name = readStringFromBuffer(source);
+
+		FieldData field_struct;
+		source = readBuffer(source, (DataPtr)&field_struct, sizeof(field_struct));
+		
+		field.type = field_struct.type;
+		field.char_n = field_struct.char_n;
+		field.unique = (bool)field_struct.unique;
+
 		fields.insert(std::pair<std::string, catalog::Field>(field.name, field));
 	}//read in fields data and add into fieldSet
-
+	
+	if(primary_key == "")
+		relation.primary_key = nullptr;
+	else
+		relation.primary_key = &fields.at(primary_key);
 	bufferManager->unlock(relationFilePath);
-	return catalog::MetaRelation(relationData.name, fields, &fields.at(relationData.primary_key));
+	return relation;
 }
 
-namespace {
-//data w/r between file(buffer)
-struct IndexData{
-	IndexData(){};
-	IndexData(const std::string& name, const std::string& relation_name, const std::string& field_name)
-		:name(name), relation_name(relation_name), field_name(field_name){}
-	std::string name;
-	std::string relation_name;
-	std::string field_name;
-};
-}
+/**  indexData: name[del], relation_name, field_name
+  */
 
 void CatalogManager::writeIndexData(const std::string& index_name){
-	BlockData block;
+	blockReadWrite::BlockData block;
+	DataPtr dest = block.data;
 	const catalog::IndexInfo& index = indexes.at(index_name);
-	memcpy(block.data, &IndexData(index_name, index.relation->name, index.field->name), sizeof(IndexData));
-	//write to block
+	dest = writeStringToBuffer(dest, index.relation->name); //relation_name
+	writeStringToBuffer(dest, index.field->name);	//field_name
 
-	const std::string&& indexPath = indexPath+index_name;
-	bufferManager->write(indexPath, block.data);//write to buffer
-	bufferManager->writeBack(indexPath);
-	bufferManager->unlock(indexPath);
+	const std::string&& path = indexPath+index_name;
+	bufferManager->write(path, block.data);//write to buffer
+	bufferManager->writeBack(path);
+	bufferManager->unlock(path);
 }
 
-catalog::IndexInfo&& CatalogManager::readIndexData(const std::string& index_name){
+catalog::IndexInfo CatalogManager::readIndexData(const std::string& index_name){
 	const std::string&& indexFilePath = indexPath + index_name;
-	DataPtr block = bufferManager->read(indexFilePath);
-	IndexData indexData;
-	memcpy(&indexData, block, sizeof(indexData));//read in indexData from memory
+	DataPtr source = bufferManager->read(indexFilePath);
+	const std::string&& relation_name = readStringFromBuffer(source); //relation_name
+	const std::string&& field_name =  readStringFromBuffer(source); //field_name
 	bufferManager->unlock(indexFilePath);
-
-	catalog::MetaRelation &relation = relations.at(indexData.relation_name);//assume relation exist
-	//get handle of relation
-
-	return catalog::IndexInfo(index_name, &relation.fields.at(indexData.field_name), &relation);
+	auto & relation = relations.at(relation_name);
+	return catalog::IndexInfo(index_name, &relation.fields.at(field_name), &relation);
 }
 
 void CatalogManager::addAllRelationData(void){
-	const std::vector<std::string>&& fileNames = getFileNames(directoryName);
+	const std::vector<std::string>&& fileNames = getFileNames(relationPath.c_str());
 	for(const auto& fileName : fileNames){
-		// addAllRelationData(path)
+		catalog::MetaRelation&& relation = readRelationData(fileName);
+		relations.insert(std::pair<std::string, catalog::MetaRelation>(fileName, relation));
+	}
+}
+
+void CatalogManager::addAllIndexData(void){
+	const std::vector<std::string>&& fileNames = getFileNames(indexPath.c_str());
+	for(const auto& fileName : fileNames){
+		auto &&index = readIndexData(fileName);
+		indexes.insert(std::pair<std::string, catalog::IndexInfo>(fileName, index));
+		relations.at(index.relation->name).indexes.insert((std::pair<std::string, catalog::IndexInfo *>(fileName, &index)));
+		//add in the relationd
 	}
 }

@@ -28,21 +28,19 @@ BufferManager::block_const_iter BufferManager::getBlock(const std::string& fileP
 }
 
 bool BufferManager::lock(const std::string& filePath){
-	auto block = getBlock(filePath);
-	if(block == list.end())
-		return false;
-	else{
-		block->pin = true;
-		return true;
-	}
+	return do_lock(filePath, true);
 }
 
 bool BufferManager::unlock(const std::string& filePath){
-	auto block = getBlock(filePath);
+	return do_lock(filePath, false);
+}
+
+bool BufferManager::do_lock(const std::string& file, bool lock) {
+	auto block = getBlock(file);
 	if(block == list.end())
 		return false;
 	else{
-		block->pin = false;
+		block->pin = lock;
 		return true;
 	}
 }
@@ -61,7 +59,7 @@ BufferManager::DataPtr BufferManager::read(const std::string& filePath){
 		auto address = getAddr(block);
 
 		//read in data
-		std::ifstream is(filePath, std::ifstream::binary);
+		std::ifstream is(filePath, std::ios::binary);
 		if(is.good()){
 			is.read((char *)address, BLOCK_SIZE);
 			is.close();

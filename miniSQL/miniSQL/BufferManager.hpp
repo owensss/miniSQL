@@ -65,6 +65,10 @@ private:
 	typedef std::list<buffer::Block>::iterator block_iter;
 	typedef std::list<buffer::Block>::const_iterator block_const_iter;
 private:
+	/**
+	 * this funtion does the real stuff
+	 */
+	bool do_lock(const std::string& file, bool lock) ;
 	/** add a block inside buffer 
 	  *	didn't copy contents of file into memory
 	  *	should be ensured that the block is not in the buffer
@@ -96,7 +100,7 @@ private:
 	/** convert block inside buffer to its address
 	  */
 	DataPtr getAddr(block_iter ptrBlock) const{
-		return (byte *)contents + BLOCK_SIZE * ptrBlock->index;
+		return (DataPtr) (contents + BLOCK_SIZE * ptrBlock->index);
 	}
 private:
 	DataPtr contents;	//the whole block data in memory

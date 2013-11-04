@@ -5,6 +5,7 @@
 *	if some field compare with some value is true
 */
 
+//condition: what attribute(field) compair with what
 class Condition {
 public:
 	enum compare_type{LT, GT, EQ, NE, LE, GE};
@@ -12,12 +13,12 @@ public:
 	//less than, greater than, equal, not equal,
 	//less or equal, greater or equal
 
-	Condition(compare_type comp, const Field& field)
+	Condition(compare_type comp, const catalog::Field* field)
 		: comp(comp), m_field(field){}
 
 	virtual ~Condition(){};
 
-	Field getField(void) const{
+	const catalog::Field* getField(void) const{ 
 		return m_field;
 	}
 
@@ -25,14 +26,16 @@ public:
 	*	of different type
 	*/
 protected:
-	const Field m_field;
+	const catalog::Field* m_field;//condition is concerned with some attribute
 	compare_type comp;
 };
 
 template <typename T>
-class cond : Condition{
+class Cond : Condition{
 public:
-	cond(T val, compare_type comp, const Field* field){}
+	Cond(T val, compare_type comp, const catalog::Field* field)
+		: Condition(comp, field), val(val){}
+public:
 	bool test(T lhs){
 		switch (comp) {
 		case LT:
@@ -54,10 +57,11 @@ private:
 };
 
 template <>
-class cond<std::string> : Condition{
+class Cond<std::string> : Condition{
 public:
-	cond(std::string& val, compare_type comp, const Field& field):Condition(comp, field){}
-
+	Cond(std::string& val, compare_type comp, const catalog::Field* field)
+		:Condition(comp, field), val(val){}
+public:
 	bool test(std::string lhs){
 		switch (comp) {
 		case LT:

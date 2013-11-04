@@ -27,7 +27,7 @@
     <ClCompile Include="RecordBufferManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="readFile.cpp">
+    <ClCompile Include="fileOperation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,7 +50,10 @@
     <ClInclude Include="RecordManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="readFile.h">
+    <ClInclude Include="fileOperation.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="blockReadWrite.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

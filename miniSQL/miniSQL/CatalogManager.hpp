@@ -7,20 +7,23 @@ namespace catalog{
 struct Field{
 public:
 	enum field_type{INT, CHARS, FLOAT};
-public:
-	Field(std::string& name, field_type type, bool unique)
-		: name(name), type(type), unique(unique){};
+public://if not chars then pass 0 to char_n
+	Field(std::string& name, field_type type, size_t char_n, bool unique)
+		: name(name), type(type), char_n(char_n), unique(unique){};
 	Field(){}
 public:
 	std::string name;
 	field_type type;
+	size_t char_n;
 	bool unique;
 };
-
+struct MetaRelation;
 struct IndexInfo{
 public:
 	IndexInfo(const std::string& index_name, const Field* field, MetaRelation *relation)
 		:index_name(index_name), field(field), relation(relation){};
+	IndexInfo(IndexInfo && other)
+		:index_name(std::move(other.index_name)), field(std::move(other.field)), relation(std::move(other.relation)){}
 public:
 	std::string index_name;
 	const Field  *field;
@@ -32,11 +35,22 @@ public:
 	typedef std::map<std::string, Field> fieldSet;
 	typedef std::map<std::string, const IndexInfo*> indexSet;//reference
 public:
+	MetaRelation(){};
 	MetaRelation(const std::string& name, const fieldSet& fields,
 		const Field* primary_key, const indexSet& indexes)
 		:name(name), fields(fields), primary_key(primary_key), indexes(indexes){}
 	MetaRelation(const std::string& name, const fieldSet& fields, 
 		const Field* primary_key):name(name), fields(fields), primary_key(primary_key){}
+	MetaRelation(const MetaRelation& other):	//copy ctor
+		name(other.name), fields(other.fields), indexes(other.indexes){
+			if(other.primary_key == nullptr)
+				this->primary_key = nullptr;
+			else
+				this->primary_key = &this->fields.at(other.primary_key->name);
+	}
+
+	MetaRelation(MetaRelation&& other)
+		:name(std::move(other.name)), fields(std::move(other.fields)), primary_key(std::move(other.primary_key)), indexes(std::move(other.indexes)){}
 public:
 	std::string name;
 	fieldSet fields;
@@ -69,11 +83,11 @@ public:
 			dropIndexInfo(index_pair.second->index_name);
 		}
 		relations.erase(name); //remove relation
-		remove((filePath+name).c_str); //delete file
+		remove((directoryName+name).c_str()); //delete file
 	}
 
 	void createIndexInfo(const std::string& index_name, const std::string& relation_name, 
-		catalog::Field *field){
+		const catalog::Field *field){
 			catalog::MetaRelation& relation = relations.at(relation_name);
 			indexSet::iterator index_iter = indexes.insert(std::pair<std::string, catalog::IndexInfo>
 				(index_name, (catalog::IndexInfo(index_name, field, &relation)))).first;
@@ -86,7 +100,7 @@ public:
 		auto &relation = index.relation;
 		(relation->indexes).erase(index_name);//remove index ref in relation
 		indexes.erase(index_name); //remove index from manager
-		remove((filePath+index_name).c_str);//remove file of that index
+		remove((directoryName+index_name).c_str());//remove file of that index
 		writeRelationData(relation->name); //update relation info
 	}
 
@@ -125,11 +139,11 @@ private:
 
 	/**	@return: MetaRelation that contain empty indexSet
 	  */
-	catalog::MetaRelation&& readRelationData(const std::string& relation_name);
+	catalog::MetaRelation readRelationData(const std::string& relation_name);
 
 	/** should be assure that relation related to that index exist
 	  */
-	catalog::IndexInfo&& readIndexData(const std::string& index_name);
+	catalog::IndexInfo readIndexData(const std::string& index_name);
 private:
 	relationSet relations;
 	indexSet indexes;

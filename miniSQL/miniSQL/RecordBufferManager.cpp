@@ -1,4 +1,4 @@
-#include "RecordBufferManager.h"
+#include "RecordBufferManager.hpp"
 
 
 RecordBufferManager::RecordBufferManager(void)

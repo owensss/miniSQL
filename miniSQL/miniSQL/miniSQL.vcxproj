@@ -77,18 +77,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="blockReadWrite.hpp" />
     <ClInclude Include="BufferManager.hpp" />
     <ClInclude Include="CatalogManager.hpp" />
     <ClInclude Include="Condition.hpp" />
     <ClInclude Include="BufferManagerExn.hpp" />
-    <ClInclude Include="readFile.h" />
+    <ClInclude Include="fileOperation.hpp" />
     <ClInclude Include="RecordBufferManager.hpp" />
     <ClInclude Include="RecordManager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="CatalogManager.cpp" />
-    <ClCompile Include="readFile.cpp" />
+    <ClCompile Include="fileOperation.cpp" />
     <ClCompile Include="RecordBufferManager.cpp" />
     <ClCompile Include="RecordManager.cpp" />
   </ItemGroup>

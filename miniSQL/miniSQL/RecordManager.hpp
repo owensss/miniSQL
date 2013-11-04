@@ -24,7 +24,7 @@ public:
 	/**
 	  *	@para: if no primary key then pass NULL to primary_key
 	  */
-	RecordSet createTable(const std::string& tableName, const std::list<Field>& fields, const Field* primary_key);
+	RecordSet createTable(const std::string& tableName, const std::list<catalog::Field>& fields, const catalog::Field* primary_key);
 	void dropTable(const std::string& tableName);
 //	void createIndex(const std::string& tableName, const std::string& index_name, const std::string& field_name);
 //	void dropIndex(const std::string& indexName);
