@@ -83,15 +83,16 @@
     <ClInclude Include="Condition.hpp" />
     <ClInclude Include="BufferManagerExn.hpp" />
     <ClInclude Include="fileOperation.hpp" />
-    <ClInclude Include="RecordBufferManager.hpp" />
+    <ClInclude Include="RecordExn.hpp" />
     <ClInclude Include="RecordManager.hpp" />
+    <ClInclude Include="RecordRelationManager.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="CatalogManager.cpp" />
     <ClCompile Include="fileOperation.cpp" />
-    <ClCompile Include="RecordBufferManager.cpp" />
     <ClCompile Include="RecordManager.cpp" />
+    <ClCompile Include="RecordRelationManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

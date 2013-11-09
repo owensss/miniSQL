@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <list>
 #include <cstdint>
@@ -10,6 +11,8 @@ namespace buffer{
 	struct Block{
 		Block(const std::string& filePath, size_t index, bool pin, bool dirt)
 			:filePath(filePath), index(index), pin(pin), dirt(dirt){}
+		Block(Block&& other)
+			:filePath(std::move(other.filePath)), index(other.index), pin(other.pin), dirt(other.dirt){}
 
 		std::string filePath;
 		size_t index;	//index inside memory => 0 until BLOCK_NUM
@@ -30,7 +33,7 @@ public:
 	/**	change pin to prevent or release lock of that block
 	  *	available only when block exist in buffer
 	  */
-	bool lock(const std::string& filePath);
+//	bool lock(const std::string& filePath);
 	bool unlock(const std::string& filePath);
 
 	/**	read from file to memory, 

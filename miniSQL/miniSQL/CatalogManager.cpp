@@ -48,19 +48,19 @@ void CatalogManager::writeRelationData(const std::string& relation_name){
 
 	{
 		size_t field_num = relation.fields.size();
-		dest = writeBuffer(dest, (DataPtr)(&field_num), sizeof(field_num));
+		dest = blockReadWrite::writeBuffer(dest, (DataPtr)(&field_num), sizeof(field_num));
 	}//field_num
 
 	if(relation.primary_key != nullptr)
-		dest = writeStringToBuffer(dest, relation.primary_key->name); //primary key
+		dest = blockReadWrite::writeStringToBuffer(dest, relation.primary_key->name); //primary key
 	else
-		dest = writeBuffer(dest, 0, sizeof(uint8_t)); //primary key is null a byte
+		dest = blockReadWrite::writeBuffer(dest, 0, sizeof(uint8_t)); //primary key is null a byte
 
 	for(const auto& field_map: relation.fields){//for all elem(map) inside fieldset
 		auto field = field_map.second;
-		dest = writeStringToBuffer(dest, field.name);//write name
+		dest = blockReadWrite::writeStringToBuffer(dest, field.name);//write name
 		FieldData fieldData(field.type, field.char_n, field.unique);
-		dest = writeBuffer(dest, (DataPtr)(&fieldData), sizeof(fieldData));//other data
+		dest = blockReadWrite::writeBuffer(dest, (DataPtr)(&fieldData), sizeof(fieldData));//other data
 	}//write in fields data
 
 	std::string relationFilePath = relationPath+relation_name;
@@ -77,16 +77,16 @@ catalog::MetaRelation CatalogManager::readRelationData(const std::string& relati
 	relation.name = relation_name;
 
 	size_t field_num;
-	source = readBuffer(source, (DataPtr)&field_num, sizeof(field_num));//get field num
-	const std::string &&primary_key = readStringFromBuffer(source);
+	source = blockReadWrite::readBuffer(source, (DataPtr)&field_num, sizeof(field_num));//get field num
+	const std::string &&primary_key = blockReadWrite::readStringFromBuffer(source);
 	
 	auto &fields = relation.fields;
 	for(size_t i = 0; i < field_num; i++){
 		catalog::Field field;
-		field.name = readStringFromBuffer(source);
+		field.name = blockReadWrite::readStringFromBuffer(source);
 
 		FieldData field_struct;
-		source = readBuffer(source, (DataPtr)&field_struct, sizeof(field_struct));
+		source = blockReadWrite::readBuffer(source, (DataPtr)&field_struct, sizeof(field_struct));
 		
 		field.type = field_struct.type;
 		field.char_n = field_struct.char_n;
@@ -110,8 +110,8 @@ void CatalogManager::writeIndexData(const std::string& index_name){
 	blockReadWrite::BlockData block;
 	DataPtr dest = block.data;
 	const catalog::IndexInfo& index = indexes.at(index_name);
-	dest = writeStringToBuffer(dest, index.relation->name); //relation_name
-	writeStringToBuffer(dest, index.field->name);	//field_name
+	dest = blockReadWrite::writeStringToBuffer(dest, index.relation->name); //relation_name
+	blockReadWrite::writeStringToBuffer(dest, index.field->name);	//field_name
 
 	const std::string&& path = indexPath+index_name;
 	bufferManager->write(path, block.data);//write to buffer
@@ -122,8 +122,8 @@ void CatalogManager::writeIndexData(const std::string& index_name){
 catalog::IndexInfo CatalogManager::readIndexData(const std::string& index_name){
 	const std::string&& indexFilePath = indexPath + index_name;
 	DataPtr source = bufferManager->read(indexFilePath);
-	const std::string&& relation_name = readStringFromBuffer(source); //relation_name
-	const std::string&& field_name =  readStringFromBuffer(source); //field_name
+	const std::string&& relation_name = blockReadWrite::readStringFromBuffer(source); //relation_name
+	const std::string&& field_name =  blockReadWrite::readStringFromBuffer(source); //field_name
 	bufferManager->unlock(indexFilePath);
 	auto & relation = relations.at(relation_name);
 	return catalog::IndexInfo(index_name, &relation.fields.at(field_name), &relation);

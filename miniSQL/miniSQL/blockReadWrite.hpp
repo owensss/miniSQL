@@ -15,14 +15,18 @@ public:
 	BlockData(void){
 		data = new byte[BufferManager::BLOCK_SIZE];
 	}
+
+	BlockData(BlockData&& other):data(std::move(other.data)){}
+
 	~BlockData(){
 		delete [] data;
 	}
-public:
+
 	BufferManager::DataPtr data;
 };
-}
+
 /** memcpy and add offset to the pointer returned
+  * write from source to dest
   */
 inline const BufferManager::DataPtr writeBuffer(BufferManager::DataPtr dest, const BufferManager::DataPtr source, size_t size){
 	memcpy(dest, source, size);
@@ -49,4 +53,6 @@ inline const std::string readStringFromBuffer(BufferManager::DataPtr& source){
 	const std::string str((char *)source);
 	source += strlen((char*)source) + 1;
 	return str;
-} 
+}
+
+}

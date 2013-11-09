@@ -17,6 +17,21 @@ public:
 	size_t char_n;
 	bool unique;
 };
+
+//return the len of the field
+inline size_t getFieldLen(const Field& field){
+	switch(field.type){
+	case Field::FLOAT:
+	case Field::INT:
+		return 4;
+	case Field::CHARS:
+		return field.char_n;
+	default:
+		//should not occur
+		return 0;
+	}
+}
+
 struct MetaRelation;
 struct IndexInfo{
 public:
@@ -41,7 +56,7 @@ public:
 		:name(name), fields(fields), primary_key(primary_key), indexes(indexes){}
 	MetaRelation(const std::string& name, const fieldSet& fields, 
 		const Field* primary_key):name(name), fields(fields), primary_key(primary_key){}
-	MetaRelation(const MetaRelation& other):	//copy ctor
+	MetaRelation(const MetaRelation& other):
 		name(other.name), fields(other.fields), indexes(other.indexes){
 			if(other.primary_key == nullptr)
 				this->primary_key = nullptr;
@@ -50,13 +65,22 @@ public:
 	}
 
 	MetaRelation(MetaRelation&& other)
-		:name(std::move(other.name)), fields(std::move(other.fields)), primary_key(std::move(other.primary_key)), indexes(std::move(other.indexes)){}
+		:name(std::move(other.name)), fields(std::move(other.fields)), 
+		primary_key(std::move(other.primary_key)), indexes(std::move(other.indexes)){}
 public:
 	std::string name;
 	fieldSet fields;
 	const Field* primary_key;	//if not exists then nullptr
 	indexSet indexes;
 };
+
+inline size_t getTupleLen(const MetaRelation& relation){
+	size_t len = 0;
+	for(auto field_map: relation.fields){
+		len += getFieldLen(field_map.second);
+	}
+	return len;
+}
 } // catalog
 
 /** to create Relation or index info, user should first create field by themselves

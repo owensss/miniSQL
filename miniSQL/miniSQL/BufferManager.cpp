@@ -27,10 +27,6 @@ BufferManager::block_const_iter BufferManager::getBlock(const std::string& fileP
 	return it;
 }
 
-bool BufferManager::lock(const std::string& filePath){
-	return do_lock(filePath, true);
-}
-
 bool BufferManager::unlock(const std::string& filePath){
 	return do_lock(filePath, false);
 }
