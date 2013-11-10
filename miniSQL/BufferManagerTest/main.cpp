@@ -7,7 +7,8 @@
 //#define READ_TABLE
 //#define BUFFER_MANAGER
 //#define CREATE_INDEX
-#define READ_INDEX
+//#define READ_INDEX
+#define INTERPRETER
 
 #ifdef CREATE_INDEX
 int main(){
@@ -79,5 +80,28 @@ int main(){
 	byte* data = bufferManager.read("MetaData\\relation\\student");
 	char buffer[100];
 	bufferManager.unlock("MetaData\\relation\\student");
+}
+#endif
+
+#ifdef INTERPRETER 
+#include "..\Interpreter\SqlRule.hpp"
+#include "..\Interpreter\Tokenizer.hpp"
+#include <iostream>
+
+using namespace std;
+
+int main() {
+	Tokenizer tk(";");
+	auto res = tk.tokenize("select insert where table values , ( ) on index prirmary key unique drop into and delete char int execfile");
+	SqlRule rule;
+	rule.set(&res);
+	rule.rematch().select().insert().where().table().values().comma().lbracket().rbracket().on().index()
+		.prirmary().key().unique().drop().into().and()._delete()._char()._int().execfile();
+
+	cout << rule.ismatch() << endl;
+	
+	rule.reset().select();
+	cout << rule.ismatch() << endl;
+	getchar();
 }
 #endif
