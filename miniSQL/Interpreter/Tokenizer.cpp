@@ -29,7 +29,7 @@ Tokenizer::tokenlist_type Tokenizer::split(const char* token) const {
 
 		if (sep[*iter] == true) {
 			// push statement
-			list.push_back(token_type
+			list.push_back(statement_type
 				(string(stmt_start_pos, iter), token_enum::Statement, prev_row, prev_col)
 			);
 			// skip sep
@@ -40,7 +40,7 @@ Tokenizer::tokenlist_type Tokenizer::split(const char* token) const {
 	}
 
 	if (stmt_start_pos != iter) // get last
-		list.push_back(token_type
+		list.push_back(statement_type
 			(string(stmt_start_pos, iter), token_enum::Statement, prev_row, prev_col)
 		);
 

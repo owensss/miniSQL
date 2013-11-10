@@ -79,7 +79,7 @@ public:
 	 * row & col
 	 */
 	tokenlist_type tokenize(const statement_type& statement) const {
-		do_tokenize(statement->c_str(), statement.row, statement.col);
+		return do_tokenize(statement->c_str(), statement.row, statement.col);
 	}
 	tokenlist_type tokenize(const char* input) const ;
 	tokenlist_type tokenize(const std::string& input) const { tokenize(input.c_str()); }
