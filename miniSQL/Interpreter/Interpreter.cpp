@@ -1,4 +1,6 @@
 #include "Interpreter.hpp"
+#include "SqlRule.hpp"
+#include "parse_exception.h"
 
 /**
  * split strings into statements and return the statements.
@@ -14,5 +16,15 @@ Interpreter::tokenlist_type Interpreter::tokenize(const statement_type& stmt) co
 }
 
 void Interpreter::PaRsE(const tokenlist_type& tokens) const {
+	SqlRule rule(&tokens, tokens.begin());
+	
+	if (rule.test_select()) parseSelect(tokens, rule);
+}
 
+void Interpreter::parseSelect(const tokenlist_type& tokens, SqlRule& rule) const {
+	std::string tablename;
+	rule.select().star().from().parseString(tablename);
+	if (rule.test_where()) {
+	} else {
+	}
 }

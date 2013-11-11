@@ -4,6 +4,8 @@
 #include <string>
 #include "Tokenizer.hpp"
 
+class SqlRule;
+
 class Interpreter {
 public:
 	typedef Tokenizer::token_type token_type;
@@ -37,7 +39,7 @@ public:
 	 */
 	void PaRsE(const tokenlist_type& tokens) const;
 private:
-
+	void parseSelect(const tokenlist_type& tokens, SqlRule& rule) const;
 private:
 	Tokenizer tokenizer;
 };
