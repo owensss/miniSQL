@@ -24,10 +24,10 @@
     <ClCompile Include="CatalogManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RecordBufferManager.cpp">
+    <ClCompile Include="fileOperation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fileOperation.cpp">
+    <ClCompile Include="RecordRelationManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,9 +44,6 @@
     <ClInclude Include="Condition.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RecordBufferManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RecordManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -54,6 +51,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="blockReadWrite.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RecordExn.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RecordRelationManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
