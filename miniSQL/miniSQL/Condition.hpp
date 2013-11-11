@@ -1,9 +1,24 @@
 #pragma once
 #include <string>
+#include "RecordManager.hpp"
+#include "DataUnit.hpp"
 
 /** Usage:
 *	if some field compare with some value is true
 */
+
+template<typename T>
+T wrapper(const DataUnit& data);
+
+template<>
+float wrapper<float>(const DataUnit& data){
+	return data.fl;
+}
+
+template<>
+int wrapper<int>(const DataUnit& data){
+	return data.integer;
+}
 
 //condition: what attribute(field) compair with what
 class Condition {
@@ -22,6 +37,7 @@ public:
 		return m_field;
 	}
 
+//	virtual bool test(DataUnit data) = 0;
 	/** have value val and function test
 	*	of different type
 	*/
@@ -52,6 +68,10 @@ public:
 			return lhs >= val;		
 		}
 	}
+
+	T test(DataUnit data){
+		return wrapper(data);
+	}
 private:
 	T val;
 };
@@ -78,6 +98,8 @@ public:
 			return lhs.compare(val) >= 0;
 		}
 	}
+
+	bool test(DataUnit data){ return test(std::string(data.str));}
 private:
 	std::string val;
 };

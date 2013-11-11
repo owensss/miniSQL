@@ -14,7 +14,7 @@ public://if not chars then pass 0 to char_n
 public:
 	std::string name;
 	field_type type;
-	size_t char_n;
+	size_t char_n; //not consider '\0', stored also as char_n bytes
 	bool unique;
 };
 

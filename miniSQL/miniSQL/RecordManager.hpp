@@ -7,12 +7,6 @@
   *	if char(n) then put n DataUnit to the list continuously
   */
 
-union DataUnit{
-	char ch;
-	int	integer;
-	float fl;
-};
-
 class RecordManager
 {
 public:
@@ -29,19 +23,27 @@ public:
 	RecordSet select(const std::string& table_name);	//select from
 	RecordSet select(const std::string& table_name, const std::list<Condition> conditions);	//select from where ...
 
-	void deleteAllTuples(const std::string& table_name){
+	void deleteAllTuples(const std::string& table_name) {
 		addRelation(table_name)->second.deleteAll();
-		removeRelation(table_name);
 	}	//delete from
-	void deleteTuples(const std::string& table_name, const std::list<Condition> conditions);	//delete from where ...
-	void insert(const std::string& table_name, const std::list<DataUnit> datas);
+
+	void deleteTuples(const std::string& table_name, const std::list<Condition>& conditions);	//delete from where ...
+	void insert(const std::string& table_name, std::list<DataUnit>& datas);
 private:
-	RelationIter addRelation(const std::string& relationName);//add and init a relationManager and add to relationSet
-	void removeRelation(const std::string& relationName);//write and remove the relation
+	typedef record::DataPtr DataPtr;
+private:
+	//add and init a relationManager and add to relationSet
+	RelationIter addRelation(const std::string& relationName){
+		return relations.insert(
+			RelationPair(relationName, record::RelationManager(relationName, bufferManager, catalogManager)))
+			.first;
+	}
+
+	//write and remove the relation from memory
+	void removeRelation(const std::string& relationName){ relations.erase(relationName); }
 	
-	//transfer dataUnionList between an array of data
-	record::Tuple dataUnitToTuple(const std::string& relationName, const std::list<DataUnit> datas);
-	record::Tuple tupleToDataUnit(const std::string& relationName, const record::Tuple& tuple);
+	
+//	DataPtr dataUnitToTuple(const std::string& relationName, const std::list<DataUnit> datas);
 private:
 	BufferManager *bufferManager;
 	CatalogManager *catalogManager;

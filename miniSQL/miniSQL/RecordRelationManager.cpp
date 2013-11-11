@@ -2,6 +2,7 @@
 #include "RecordRelationManager.hpp"
 #include "blockReadWrite.hpp"
 #include "RecordManager.hpp"
+#include "fileOperation.hpp"
 #include <algorithm>
 
 namespace{
@@ -10,49 +11,68 @@ namespace{
 		return RecordManager::directoryName + "\\" + relationManager.getName() + "_"+std::to_string(block_num);
 	}
 
+	//get the offset of freeSpace
+	inline record::Tuple::TupleOffset getFreeSpaceOff(const record::Block& block, size_t tuple_len){
+		return sizeof(record::Head) + block.header.totalTupleNum * (tuple_len + sizeof(record::Tuple::TupleOffset));
+	}
+
 	inline bool isFull(const record::Block& block, size_t tuple_len){
-		size_t size = sizeof(record::Head) + block.header.totalTupleNum * tuple_len;
-		return (size + tuple_len > BufferManager::BLOCK_SIZE);
+		return getFreeSpaceOff(block, tuple_len) >= BufferManager::BLOCK_SIZE;
 	}
 }
 
 namespace record{
-	const size_t RelationManager::GREATEST_BLOCKS_CAPACITY = 10;
+	const size_t RelationManager::GREATEST_BLOCKS_CAPACITY = 10; //buffer 10 blocks for one relation
 
 	RelationManager::~RelationManager(){//write all info to files
 		releaseBlocks(blocks.size());
 	} 
 
+	//create a dataBlock and write and write that block to disk
+	void RelationManager::writeBlock(const Block& block){
+		blockReadWrite::BlockData dataBlock;
+		DataPtr ptr = dataBlock.data;
+
+		ptr = blockReadWrite::writeBuffer(ptr, (DataPtr)&block.header, sizeof(Head));
+		//write head
+
+		for(auto& tuple : block.tuples){
+			ptr = blockReadWrite::writeBuffer(ptr, tuple.data, sizeof(tuple_len)); //write tuple data
+			ptr = blockReadWrite::writeBuffer(ptr, (DataPtr)&tuple.nextDeleted, sizeof(Tuple::TupleOffset));
+		}//write tuple
+
+		auto &path = getFullPath(*this, block.header.number);
+		bufferManager->write(path, ptr);
+		bufferManager->writeBack(path); //save
+	}
+
+	/* read existed block with its number, if cannot access return false
+	 * user should ensure that block not in blockSet
+     */
 	bool RelationManager::readBlock(size_t block_num){
 		auto path = getFullPath(*this, block_num);
-		record::Block block;
 		try{
-		memcpy(block.dataBlock.data, bufferManager->read(path), BufferManager::BLOCK_SIZE);
-		bufferManager->unlock(path);//block data
-
-		auto ptr = block.dataBlock.data;
-		Head head;
-		ptr = blockReadWrite::readBuffer(ptr, (DataPtr)&head, sizeof(head));//get head
-		
-		auto tuple_num = head.totalTupleNum;
-		for(size_t i = 0; i < tuple_num; i++){
-			bool deleted;
-			ptr = blockReadWrite::readBuffer(ptr, (DataPtr)&deleted, sizeof(deleted));//get deleted info
-			Tuple tuple(ptr, &block);
-			ptr += tuple_len;
-			TupleIter iter;
-			if(deleted){
-				deletedTuples.push_back(std::move(tuple));
-				iter = deletedTuples.end()--;
+			DataPtr block_addr = bufferManager->read(path);
+			record::Block recordBlock;
+			Head &head = recordBlock.header;
+			auto ptr = blockReadWrite::readBuffer(block_addr, (DataPtr)&head, sizeof(head)); //get head
+			
+			auto tuple_num = head.totalTupleNum;
+			auto next_deleted = head.firstDeleted;
+			for(size_t i = 0; i < tuple_num; i++){
+				if(ptr == block_addr + next_deleted){ //get to the deleted tuple
+					ptr += tuple_len; //skip tuple contents
+					ptr = blockReadWrite::readBuffer(ptr, (DataPtr)&next_deleted, sizeof(Tuple::TupleOffset));
+					//get addr of next delete
+					continue; //skip
+				}
+				else{ //nondeleted tuple
+					Tuple tuple(ptr, Tuple::NULL_OFFSET, &recordBlock);
+					ptr += tuple_len + sizeof(Tuple::TupleOffset);
+					recordBlock.tuples.push_back(std::move(tuple));
+				}
 			}
-			else{
-				nondeletedTuples.push_back(std::move(tuple));
-				iter = nondeletedTuples.end()--;
-			}
-
-			block.tuples.push_back(iter);
-		}
-			blocks.push_back(std::move(block));
+			blocks.insert(BlockPair(head.number, std::move(recordBlock)));
 			return true;
 		}//end of try
 		catch(CannotOpenFile exn){//cannot access the file
@@ -60,72 +80,73 @@ namespace record{
 		}
 	}
 
-	void RelationManager::writeBlock(const Block& block){
-		auto ptr = block.dataBlock.data;
-		ptr = blockReadWrite::writeBuffer(ptr, (DataPtr)&block.header, sizeof(Head));
-		//write head
-
-		for(auto& tuple : block.tuples){
-			ptr = blockReadWrite::writeBuffer(ptr, (DataPtr)&tuple->deleted, sizeof(bool));
-			ptr += tuple_len;
-		}//write tuple
-	}
-
-	void RelationManager::writeBlockToFile(const Block& block){
-		auto path = getFullPath(*this, block.header.number);
-		bufferManager->write(path, block.dataBlock.data);
-		bufferManager->writeBack(path);
-	}
-
 	void RelationManager::deleteTuple(TupleIter tuple){
-		tuple->deleted = true;
 		auto & block = *tuple->block;
-		block.header.totalTupleNum --;//decrement
+		auto &head = block.header;
+		tuple->nextDeleted = head.firstDeleted;
+		head.firstDeleted = tuple->data - bufferManager->read(getFullPath(*this, head.number));
+		//tuple.nextDeleted
+
 		if(tuple->block->header.totalTupleNum == 0){//no tuples in the block
-			remove(getFullPath(*this, block.header.number).c_str());//delete this block
-			blocks.erase(findBlockByNumber(block.header.number));
+			remove(getFullPath(*this, block.header.number).c_str());//delete the file
+			blocks.erase(block.header.number);
 			//remove that block from blocks
 		}
-		else
-			nondeletedTuples.splice(tuple, deletedTuples);
 	}
 
-	void RelationManager::insertTuple(DataPtr data){
-		while(blocks.empty() || (deletedTuples.empty() && isFull(blocks.back(), tuple_len))){
-			releaseMemory();//in case of size too large
-			addBlock(); //if no blocks or no empty room to insert keep adding blocks
+	/* insert tuple into one block
+	 * used by insertTuple, user should ensure that the block has free space
+	 */
+	bool RelationManager::doInsertTuple(Block& block, DataPtr data){
+		if(block.header.firstDeleted == Tuple::NULL_OFFSET && isFull(block, tuple_len))
+			return false;
+
+		auto addr = bufferManager->read(getFullPath(*this, block.header.number));
+		auto &head = block.header;
+		if(block.header.firstDeleted != Tuple::NULL_OFFSET){
+			//use the deleted not inc totalTupleNum
+			addr += block.header.firstDeleted;
+			blockReadWrite::readBuffer(addr+tuple_len, (DataPtr)&head.firstDeleted, sizeof(Tuple::TupleOffset));
+			//get next deleted addr
 		}
-		if(!deletedTuples.empty()){//can replace those deleted tuple
-			TupleIter tuple = deletedTuples.begin();//get first deletedTuple, reuse it
-			*(bool*)(tuple->data) = false;//set not deleted
-			memcpy(tuple->data+sizeof(bool), data, tuple_len);//copy data
-			tuple->block->header.number ++;
-			nondeletedTuples.splice(tuple, deletedTuples);
+		else { //head.firstDeleted == NULL_OFFSET
+			head.totalTupleNum ++;
+			addr +=getFreeSpaceOff(block, tuple_len);
 		}
-		else{//have new not full block to write
-			auto& block = blocks.back();
-			auto ptr = block.tuples + tuple_len*block.header.number;
-			*(bool*)ptr = false;	//not deleted
-			ptr += sizeof(bool);
-			memcpy(ptr, data, tuple_len);//copy data
-			block.header.number ++;
-			nondeletedTuples.push_back(Tuple(ptr, &blocks.back()));//add a new tuple
-		}
+		bufferManager->writeMemory(addr, data, tuple_len);	//write data to mem
+		block.tuples.push_back(Tuple(addr, &block)); //add to tuples
+		return true;
 	}
 
-	void RelationManager::addBlock(void){
+	bool RelationManager::insertTuple(DataPtr data){
+		for(auto& blockPair : blocks){//for all the blocks inside memory
+			if(doInsertTuple(blockPair.second, data)) //if successfully insert
+				break;
+		}
+
+		//no free memory in blocks, find backward for free space if no then create one
+		do{
+			appendBlock();
+			releaseMemory();
+		}while(!doInsertTuple(blocks.rbegin()->second, data));
+		//while no space to insert keep appending
+		return true; //TODO: may change the return later
+	}
+
+	// add block to tail, if not exists then create one
+	void RelationManager::appendBlock(void){
 		size_t num;
 		if(!blocks.empty()){
-			auto& back = blocks.back();
-			num = back.header.number + 1;
-			back.header.terminate = false;
+			auto& largest_block_head = blocks.rbegin()->second.header;
+			num = largest_block_head.number + 1;
+			largest_block_head.terminate = false;
 			//change in case it was terminate
 		}
 		else
 			num = 0;//get num
 
-		if(!readBlock(num)){//not success, no such file
-			writeBlockToFile(Block(Head(num, 0, true), Block::TupleIterSet(), blockReadWrite::BlockData()));
+		if(!readBlock(num)){//if not success (no such file) => create one
+			writeBlock(Block(Head(num, 0, true, Tuple::NULL_OFFSET)));
 			//just to create the file
 			readBlock(num);//get block
 		}
@@ -141,56 +162,44 @@ namespace record{
 	}
 
 	void RelationManager::releaseBlock(size_t block_no){
-		auto &block = std::find_if(blocks.begin(), blocks.end(), 
-			[block_no](const Block& block){return block.header.number == block_no;});
-		writeBlockToFile(*block);
+		auto &block = blocks.at(block_no);
+		writeBlock(block);
+		bufferManager->unlock(getFullPath(*this, block_no));
 	}
 
-	void RelationManager::releaseBlock(const Block& block){
-		writeBlockToFile(block);
-		for(auto& tupleIter : block.tuples){
-			if(tupleIter->)
-		}
-	}
-
+	/* release num blocks
+	 * user should ensure that num not exceeds the actual size
+	 */
 	void RelationManager::releaseBlocks(size_t num){
-		for(size_t i = 0; i < num; i++){
-			auto& block = blocks.front();
-			writeBlockToFile(block);
-			blocks.pop_front();
-		}//write and pop num elements
-	}
-
-	void RelationManager::deleteAll(void){
-		deletedTuples.clear();
-		nondeletedTuples.clear();
-
-		while(!blocks.empty()){
-			auto &block = blocks.front();
-			remove(getFullPath(*this, block.header.number).c_str());
-			blocks.pop_front();
-		}
-	}
-
-	void RelationManager::insertBlock(const Block& block){
-		auto& iter = blocks.begin();
-		auto& end = blocks.end();
-
-		for(	; iter != end && std::next(iter) != end; ){
-			auto &next = std::next(iter);
-			if(iter->header.number > next->header.number){
-				iter = next;
-				break;
+		auto tail_num = blocks.rbegin()->second.header.number;
+		size_t cnt = 0;
+		for(size_t i = 0; cnt < num; i++){
+			auto &block_ptr = blocks.find(i + tail_num);
+			if(block_ptr != blocks.end()){
+				releaseBlock(i + tail_num);
+				cnt++;
 			}
-			else if(iter->header.number == next->header.number)
-				return;	//if exists do nothing
-			else
-				iter = next;//continue
 		}
-		blocks.insert(iter, std::move(block));
 	}
 
-	std::pair<bool, RelationManager::TupleConstIter> RelationManager::getFirstTuple(void){
-		if(blocks.at())
+	void RelationManager::deleteAll(void){ //delete the whole relation
+		auto fileNames = getFileNamesWithPrefix((RecordManager::directoryName + "\\" + name + "_").c_str());
+		for(auto& fileName: fileNames)
+			remove(fileName.c_str());
+	}//TODO: check
+
+	std::pair<bool, RelationManager::TupleConstIter> RelationManager::getFirstTuple(size_t block_num){
+		if(!readBlock(block_num) || getBlock(block_num).tuples.empty()) //no such file or no tuples
+			return std::pair<bool, RelationManager::TupleConstIter>(false, TupleSet().end());
+		else
+			return std::pair<bool, RelationManager::TupleConstIter>(false, getBlock(block_num).tuples.begin());
+	}
+
+	std::pair<bool, RelationManager::TupleConstIter> RelationManager::getNextTuple(TupleConstIter tuple){
+		if(tuple != tuple->block->tuples.end()) //not reach the end of the block yet
+			return std::pair<bool, RelationManager::TupleConstIter>(true, ++tuple);
+		else{//get next block
+			return getFirstTuple(tuple->block->header.number);
+		}
 	}
 }
