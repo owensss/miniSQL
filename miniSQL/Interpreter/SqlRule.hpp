@@ -32,8 +32,10 @@ public:
 	std::string expect() const { return expect_word;}
 
 	SqlRule& match(const std::string& input) {
-		if (iter == end || iter->value != input) {
+		if (iter->value != input) {
 			throw unexpected_token_exception(*iter, input.c_str());
+		} else if (iter == end) {
+			throw unexpected_end_of_input_exception(token(), input.c_str());
 		}
 		++iter;
 		return *this;
@@ -48,6 +50,11 @@ public:
 
 		return *this;
 	}
+	bool testString() {
+		if (iter == end || iter->type != token_enum::Word)
+			return false;
+		return true;
+	}
 
 	SqlRule& parseInt(int& value) {
 		if (iter == end || iter->type != token_enum::Int) {
@@ -59,16 +66,66 @@ public:
 
 		return *this;		
 	}
+	bool testInt() {
+		if (iter == end || iter->type != token_enum::Int)
+			return false;
+		return true;
+	}
 
 	SqlRule& parseFloat(float& value) {
 		if (iter == end || iter->type != token_enum::Int) {
-			throw unexpected_token_exception(*iter, "a integer");
+			throw unexpected_token_exception(*iter, "a float");
 		}
 		++iter;
 
 		value = atof(iter->value.c_str());
 
 		return *this;	
+	}
+	bool testFloat() {
+		if (iter == end || iter->type != token_enum::Double)
+			return false;
+		return true;
+	}
+
+	SqlRule& parseQuote(std::string& value) {
+		if (iter == end || (iter->type != token_enum::SingleQuote && iter->type != token_enum::Quote)) {
+			throw unexpected_token_exception(*iter, "a quoted string");
+		}
+		value.clear();
+		auto& tmp = iter->value;
+		// remove ''/""
+		value.insert(value.end(), ++tmp.begin(), --tmp.end());
+		
+		++iter;
+		return *this;
+	}
+	bool testQuote() {
+		if (iter == end || (iter->type != token_enum::SingleQuote && iter->type != token_enum::Quote))
+			return false;
+		return true;
+	}
+
+	SqlRule& parseOperator(std::string& value) {
+		if (iter == end || iter->type != token_enum::Symbol || (
+			iter->value != ">" && iter->value != "<" && iter->value != ">=" &&
+			iter->value != "<=" && iter->value != "==" && iter->value != "!=")
+		) {
+			throw unexpected_token_exception(*iter, "an operator");
+		}
+
+		value = iter->value;
+		++iter;
+
+		return *this;
+	}
+	bool testOperator() {
+		if (iter == end || iter->type != token_enum::Symbol || (
+			iter->value != ">" && iter->value != "<" && iter->value != ">=" &&
+			iter->value != "<=" && iter->value != "==" && iter->value != "!=")
+		)
+			return false;
+		return true;
 	}
 
 	bool test(const std::string& input) {
@@ -96,6 +153,9 @@ public:
 		end
 	!!! CODE END !!!
 	 */
+	SqlRule& advance() {
+		++iter;
+	}
 	SqlRule& lbracket() {
 		return match("(");
 	}
@@ -165,19 +225,19 @@ public:
 	SqlRule& _int() {
 		return match("int");
 	}
-	bool test__int() {
+	bool test_int() {
 		return test("int");
 	}
 	SqlRule& _float() {
 		return match("float");
 	}
-	bool test__float() {
+	bool test_float() {
 		return test("float");
 	}
 	SqlRule& _char() {
 		return match("char");
 	}
-	bool test__char() {
+	bool test_char() {
 		return test("char");
 	}
 	SqlRule& primary() {
@@ -225,7 +285,7 @@ public:
 	SqlRule& _delete() {
 		return match("delete");
 	}
-	bool test__delete() {
+	bool test_delete() {
 		return test("delete");
 	}
 	SqlRule& quit() {
