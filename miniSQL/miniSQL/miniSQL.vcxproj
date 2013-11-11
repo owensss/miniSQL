@@ -77,6 +77,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Interpreter\detail\char_hash.h" />
+    <ClInclude Include="..\Interpreter\Interpreter.hpp" />
+    <ClInclude Include="..\Interpreter\parse_exception.h" />
+    <ClInclude Include="..\Interpreter\SqlRule.hpp" />
+    <ClInclude Include="..\Interpreter\Tokenizer.hpp" />
+    <ClInclude Include="api.hpp" />
     <ClInclude Include="blockReadWrite.hpp" />
     <ClInclude Include="BufferManager.hpp" />
     <ClInclude Include="CatalogManager.hpp" />
@@ -88,6 +94,11 @@
     <ClInclude Include="RecordRelationManager.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Interpreter\Interpreter.cpp" />
+    <ClCompile Include="..\Interpreter\main.cpp" />
+    <ClCompile Include="..\Interpreter\parse_error.cpp" />
+    <ClCompile Include="..\Interpreter\Tokenizer.cpp" />
+    <ClCompile Include="Api.cpp" />
     <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="CatalogManager.cpp" />
     <ClCompile Include="fileOperation.cpp" />

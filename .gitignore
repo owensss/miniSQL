@@ -19,3 +19,4 @@ Debug/
 *.pdb
 *.tlog
 *.obj
+*.user
