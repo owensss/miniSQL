@@ -1,4 +1,4 @@
-﻿Build started 11/7/2013 11:49:55 PM.
+﻿Build started 11/11/2013 11:51:13 PM.
      1>Project "E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\miniSQL\miniSQL.vcxproj" on node 2 (Rebuild target(s)).
      1>ClCompile:
          D:\Software\IDE\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt BufferManager.cpp CatalogManager.cpp fileOperation.cpp RecordManager.cpp RecordRelationManager.cpp
@@ -31,9 +31,11 @@
          Debug\fileOperation.obj
          Debug\RecordManager.obj
          Debug\RecordRelationManager.obj
+     1>RecordManager.obj : warning LNK4006: "int __cdecl wrapper<int>(union DataUnit const &)" (??$wrapper@H@@YAHABTDataUnit@@@Z) already defined in RecordRelationManager.obj; second definition ignored
+     1>RecordManager.obj : warning LNK4006: "float __cdecl wrapper<float>(union DataUnit const &)" (??$wrapper@M@@YAMABTDataUnit@@@Z) already defined in RecordRelationManager.obj; second definition ignored
          miniSQL.vcxproj -> E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\Debug\miniSQL.lib
      1>Done Building Project "E:\ZJU\course\CS\DB_design\miniSQL\miniSQL\miniSQL\miniSQL.vcxproj" (Rebuild target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:11.70
+Time Elapsed 00:00:19.09

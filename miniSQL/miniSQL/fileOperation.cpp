@@ -12,7 +12,7 @@
 void DisplayErrorBox(LPTSTR lpszFunction);
 
 const std::vector<std::string> getFileNames(const char *directory)
-{
+{//get fileNames like directory names*
    WIN32_FIND_DATA ffd;
   // LARGE_INTEGER filesize;
    TCHAR szDir[MAX_PATH];

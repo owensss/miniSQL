@@ -58,9 +58,10 @@ public:
 	void writeMemory(void *dest, void *source, size_t size);
 
 	/**
-	  *	force some block inside memory save into files
+	  *	force some block inside memory save into disk
 	  *	if not exists in buffer then ignore
-	  *	will automatically set dirt bit to false
+	  *	will set dirt bit to false
+	  * all save operation must call this function
 	  */
 	void writeBack(const std::string& filePath);
 private:
