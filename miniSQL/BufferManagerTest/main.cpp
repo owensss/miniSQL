@@ -93,15 +93,13 @@ using namespace std;
 int main() {
 	Tokenizer tk(";");
 	auto res = tk.tokenize("select insert where table values , ( ) on index prirmary key unique drop into and delete char int execfile");
-	SqlRule rule;
-	rule.set(&res);
-	rule.rematch().select().insert().where().table().values().comma().lbracket().rbracket().on().index()
-		.prirmary().key().unique().drop().into().and()._delete()._char()._int().execfile();
+	SqlRule rule(&res, res.begin());
 
-	cout << rule.ismatch() << endl;
+	rule.select().insert().where().table().values().comma().lbracket().rbracket().on().index()
+		.primary().key().unique().drop().into().and()._delete()._char()._int().execfile();
+
 	
 	rule.reset().select();
-	cout << rule.ismatch() << endl;
 	getchar();
 }
 #endif

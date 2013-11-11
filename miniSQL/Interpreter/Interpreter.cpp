@@ -53,5 +53,4 @@ void Interpreter::parseDelete(const tokenlist_type& tokens, SqlRule& rule) const
 }
 
 void Interpreter::parseCreate(const tokenlist_type& tokens, SqlRule& rule) const {
-	std::
 }

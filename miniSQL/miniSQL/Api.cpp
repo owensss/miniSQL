@@ -43,7 +43,7 @@ namespace api {
 		return record->select(tablename, cond);
 	}
 
-	void Api::insertInto(const std::string& tablename, const std::list<DataUnit> datas) {
+	void Api::insertInto(const std::string& tablename, std::list<DataUnit> datas) {
 		record->insert(tablename, datas);
 	}
 
