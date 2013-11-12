@@ -5,6 +5,9 @@
 #include "Tokenizer.hpp"
 
 class SqlRule;
+namespace api {
+	class Api;
+}
 
 class Interpreter {
 public:
@@ -14,6 +17,9 @@ public:
 	typedef Tokenizer::tokenlist_type tokenlist_type;
 public:
 	Interpreter() :tokenizer(";") {}
+	void setAPI(api::Api* api_) { api = api_; }
+	api::Api* getAPI() { return api; }
+	const api::Api* getAPI() const { return api; }
 	/**
 	 * entry method that parses string into sql-api
 	 *
@@ -39,9 +45,20 @@ public:
 	 */
 	void PaRsE(const tokenlist_type& tokens) const;
 private:
+	void parseCreate(const tokenlist_type& tokens, SqlRule& rule) const;
+	void parseCreateTable(const tokenlist_type& tokens, SqlRule& rule) const;
+	void parseCreateIndex(const tokenlist_type& tokens, SqlRule& rule) const;
+	void parseDrop(const tokenlist_type& tokens, SqlRule& rule) const;
+	void parseDropTable(const tokenlist_type& tokens, SqlRule& rule) const;
+	void parseDropIndex(const tokenlist_type& tokens, SqlRule& rule) const;
 	void parseSelect(const tokenlist_type& tokens, SqlRule& rule) const;
+	void parseInsert(const tokenlist_type& tokens, SqlRule& rule) const;
+	void parseDelete(const tokenlist_type& tokens, SqlRule& rule) const;
+	void parseQuit(const tokenlist_type& tokens, SqlRule& rule) const;
+	void parseExecfile(const tokenlist_type& tokens, SqlRule& rule) const;
 private:
 	Tokenizer tokenizer;
+	api::Api* api;
 };
 
 #endif // INTER

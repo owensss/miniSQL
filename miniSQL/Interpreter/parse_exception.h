@@ -48,4 +48,24 @@ private:
 	char* expect_;
 };
 
+class unexpected_end_of_input_exception : public parse_exception {
+public:
+	unexpected_end_of_input_exception(const token& tk, const char* expect) 
+		throw() :parse_exception(tk) , expect_(new char[255]) {
+			strncpy(expect_, expect, 254);
+	}
+	~unexpected_end_of_input_exception() {}
+
+	const char* what() const {
+		return "unexpectd end of input";
+	}
+
+	const char* expect() const {
+		return expect_;
+	}
+
+private:
+	char* expect_;
+};
+
 #endif // PARSE_EXCEPTION_H

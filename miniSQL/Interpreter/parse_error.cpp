@@ -1,7 +1,7 @@
 #include "parse_exception.h"
 #include "Tokenizer.hpp"
 
-parse_exception::parse_exception(const token& tk)
+parse_exception::parse_exception(const token& tk) throw()
 	:tk(tk) {
 }
 

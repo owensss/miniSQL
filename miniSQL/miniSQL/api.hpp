@@ -28,8 +28,18 @@ public:
 	Api();
 	~Api() { } // do nothing
 public:
-	RecordSet select(const std::string& tablename);
-	RecordSet select(const std::string& tablename, const std::list<Condition>& conditions);
+	void createTable(const std::string& name, const catalog::MetaRelation::fieldSet& fields, 
+		const catalog::Field *primary_key);
+	void dropTable(const std::string& tablename);
+	void createIndex(const std::string& indexname, const std::string& tablename, 
+		const catalog::Field *field);
+	void dropIndex(const std::string& indexname);
+	RecordSet selectFrom(const std::string& tablename);
+	RecordSet selectFrom(const std::string& tablename, const std::list<Condition>& conditions);
+	void insertInto(const std::string& table_name, const std::list<DataUnit> datas);
+	void deleteFromTable(const std::string& tablename);
+	void deleteFromTable(const std::string& tablename, const std::list<Condition> conditions);
+	void execfile(const std::string& filename) ;
 private:
 	BufferManagerType buffer; // buffer shall be initialized before all other memebers
 	CatalogManagerType catalog;
