@@ -27,6 +27,16 @@ Tokenizer::tokenlist_type Tokenizer::split(const char* token) const {
 			col = 1;
 		} else ++col;
 
+		if (*iter == '\'') {
+			while (*iter != '\'')
+				++iter;
+		}
+
+		if (*iter == '\"') {
+			while (*iter != '\"')
+				++iter;
+		}
+
 		if (sep[*iter] == true) {
 			// push statement
 			list.push_back(statement_type
@@ -45,6 +55,48 @@ Tokenizer::tokenlist_type Tokenizer::split(const char* token) const {
 		);
 
 	return list;
+}
+#include <iostream>
+Tokenizer::tokenlist_type Tokenizer::onlineTokenize(const char* input) {
+	str += input;
+	const char* stmt_start_pos = str.c_str();
+	int prev_col = col_;
+	int prev_row = row_;
+	const char* iter;
+	tokenlist_type lists;
+	
+	for (iter = stmt_start_pos; *iter != '\0'; ++iter) {
+		if (newline[*iter] == true) { // newline
+			++row_;
+			col_ = 1;
+		} else ++col_;
+
+		if (*iter == '\'') {
+			while (*iter != '\'')
+				++iter;
+		}
+
+		if (*iter == '\"') {
+			while (*iter != '\"')
+				++iter;
+		}
+
+		if (sep[*iter] == true) {
+			// push statement
+			lists.push_back(statement_type
+				(string(stmt_start_pos, iter), token_enum::Statement, prev_row, prev_col)
+			);
+			// skip sep
+			stmt_start_pos = iter+1;
+			prev_col = col_;
+			prev_row = row_;
+		}
+	}
+	col_ = prev_col;
+	row_ = prev_row;
+
+	str = stmt_start_pos;
+	return lists;
 }
 
 Tokenizer::tokenlist_type Tokenizer::tokenize(const char* input) const {

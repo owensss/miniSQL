@@ -14,8 +14,8 @@ using namespace std;
 
 namespace api {
 	Api::Api() 
-		:buffer(std::make_shared<BufferManager>()) // make sure buffer is created first
 	{
+		buffer = std::make_shared<BufferManager>(); // make sure buffer is created first
 		catalog = std::make_shared<CatalogManager>(buffer.get());
 		// index = nullptr; // TODO
 		record = nullptr; // TODO

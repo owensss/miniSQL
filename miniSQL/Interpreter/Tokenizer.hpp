@@ -64,6 +64,9 @@ public:
 	Tokenizer(const char* separater, const char* skipper = " \t\n", const char* newline = "\n")
 		:sep(separater), skipper(skipper), newline(newline) {
 			this->skipper.add(newline);
+			row_ = 1;
+			col_ = 1;
+			str = "";
 	}
 	~Tokenizer() {}
 
@@ -74,6 +77,11 @@ public:
 	 * e.g: make seperater be '-;', then "aaaa- bbbbxxxx d;-" is splited into "aaaa" " bbbbxxxx d;" ""
 	 */
 	tokenlist_type split(const char* input) const ;
+	/**
+	 * return list of statements tokenized currently
+	 */
+	tokenlist_type onlineTokenize(const char* input) ;
+	void clearState() { row_ = 1; col_ = 1; str = "";}
 	/**
 	 * split string into tokens by the rules above, return the list of tokens, as well as their
 	 * row & col
@@ -103,6 +111,11 @@ private:
 	detail::CharHash sep;
 	detail::CharHash skipper;
 	detail::CharHash newline;
+private:
+	// var for online input
+	int row_;
+	int col_;
+	std::string str;
 };
 
 #endif // TOKENIZER_HPP
