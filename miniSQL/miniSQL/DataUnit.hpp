@@ -2,6 +2,10 @@
 #include "CatalogManager.hpp"
 #include "BufferManager.hpp"
 
+namespace record {
+	class Tuple;
+}
+
 union DataUnit{
 	DataUnit(){}
 	DataUnit(char* str):str(str){};
@@ -12,22 +16,15 @@ union DataUnit{
 	float fl;
 };
 
+namespace dataUnit{
+	extern DataUnit getFieldDataFromBuffer(const std::string& relationName, const std::string& field_name, 
+								BufferManager::DataPtr data, CatalogManager *catalogManager);
 
-inline DataUnit getFieldDataFromBuffer(const std::list<catalog::Field>& fields, 
-									   const catalog::Field& field, BufferManager::DataPtr data){
-	size_t offs = get_field_offset(fields, &field);
-	auto ptr = offs + data;
-	DataUnit dataUnit;
-	switch(field.type){
-	case catalog::Field::CHARS:
-		dataUnit.str = (char *)ptr; //get the address of the str
-		break;
-	case catalog::Field::FLOAT:
-		memcpy(&dataUnit.fl, ptr, sizeof(dataUnit.fl));
-		break;
-	case catalog::Field::INT:
-		memcpy(&dataUnit.integer, ptr, sizeof(dataUnit.integer));
-		break;
-	}
-	return dataUnit;
+	extern DataUnit getFieldDataFromBuffer(const std::list<catalog::Field>& fields, 
+									   const catalog::Field& field, BufferManager::DataPtr data);
+	extern BufferManager::DataPtr dataUnitToTuple(const std::string& relationName, std::list<DataUnit>& datas, CatalogManager* catalogManager);
+
+	//transfer from tuple to dataUnit
+	extern std::list<DataUnit> tupleToDataUnit
+		(const std::string& relationName, const record::Tuple & tuple, CatalogManager *catalogManager);
 }

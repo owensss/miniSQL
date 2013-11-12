@@ -23,43 +23,26 @@ CatalogManager::~CatalogManager(void)
 namespace{
 	typedef BufferManager::DataPtr DataPtr;
 /** relation: field_num, primary_key_name
-  * field: field_name, field_type, char_n, unique
+  * field: field_name, field_type , char_n, unique
   */
 
-/** as a dataBlock for read & write
-  */
+// as a dataBlock for read & write for field
 struct FieldData{
 public:
-	FieldData(catalog::Field::field_type type, size_t char_n, bool unique)
-		:type(type), char_n(char_n), unique(unique){}
+	FieldData(catalog::Field::field_type type, size_t char_n, bool unique, uint32_t num)
+		:type(type), char_n(char_n), unique(unique), num(num){}
 	FieldData(){}
 public:
 //	[std::string name;] 
 	catalog::Field::field_type type;
 	uint8_t char_n;
-	uint8_t unique; //use char instead of bool
+	bool unique;
+	uint32_t num;
 };
 
 }
 
 namespace catalog{
-std::list<Field> get_sorted_field_list(const MetaRelation::fieldSet& fields){
-	std::list<Field> fieldList;
-	std::transform(fields.begin(), fields.end(), std::back_inserter(fieldList), 
-		[](const std::pair<std::string, Field>& val){return val.second;} );
-	fieldList.sort([](const Field& lhs, const Field& rhs){return lhs.num > rhs.num;});
-	return std::move(fieldList);
-}
-
-
-size_t get_field_offset(const std::list<Field> & fieldList, const Field *field){
-	size_t offset = 0;
-	auto& end = fieldList.end();
-	for(auto& iter = fieldList.begin(); iter != end && iter->name != field->name; iter++){
-		offset += getFieldLen(*iter);
-	}
-	return offset;
-}
 
 size_t getFieldLen(const Field& field){
 	switch(field.type){
@@ -74,13 +57,17 @@ size_t getFieldLen(const Field& field){
 	}
 }
 }
+
+/* storage format: 1. field_num (32bit)  2. primary key name (if null => 0 (8 bit) else arbitrary len string end with '\0')
+ *	3. Field Data
+ */
 void CatalogManager::writeRelationData(const std::string& relation_name){
 	const auto& relation = relations.at(relation_name);//get relation handle
 	blockReadWrite::BlockData block;
 	DataPtr dest = block.data;//pointer to data to write
 
 	{
-		size_t field_num = relation.fields.size();
+		uint32_t field_num = relation.fields.size();
 		dest = blockReadWrite::writeBuffer(dest, (DataPtr)(&field_num), sizeof(field_num));
 	}//field_num
 
@@ -92,7 +79,7 @@ void CatalogManager::writeRelationData(const std::string& relation_name){
 	for(const auto& field_map: relation.fields){//for all elem(map) inside fieldset
 		auto field = field_map.second;
 		dest = blockReadWrite::writeStringToBuffer(dest, field.name);//write name
-		FieldData fieldData(field.type, field.char_n, field.unique);
+		FieldData fieldData(field.type, field.char_n, field.unique, field.num);
 		dest = blockReadWrite::writeBuffer(dest, (DataPtr)(&fieldData), sizeof(fieldData));//other data
 	}//write in fields data
 
@@ -109,7 +96,7 @@ catalog::MetaRelation CatalogManager::readRelationData(const std::string& relati
 	catalog::MetaRelation relation;
 	relation.name = relation_name;
 
-	size_t field_num;
+	uint32_t field_num;
 	source = blockReadWrite::readBuffer(source, (DataPtr)&field_num, sizeof(field_num));//get field num
 	const std::string &&primary_key = blockReadWrite::readStringFromBuffer(source);
 	
@@ -123,7 +110,8 @@ catalog::MetaRelation CatalogManager::readRelationData(const std::string& relati
 		
 		field.type = field_struct.type;
 		field.char_n = field_struct.char_n;
-		field.unique = (bool)field_struct.unique;
+		field.unique = field_struct.unique;
+		field.num = field_struct.num;
 
 		fields.insert(std::pair<std::string, catalog::Field>(field.name, field));
 	}//read in fields data and add into fieldSet

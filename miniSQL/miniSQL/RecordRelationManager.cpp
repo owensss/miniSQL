@@ -204,4 +204,24 @@ namespace record{
 			return getFirstTuple(tuple->block->header.number);
 		}
 	}
+
+	std::list<record::DataAndLoc> RelationManager::getAllValueAndLoc(const std::string& fieldName){
+		std::list<record::DataAndLoc> dataAndLocs;
+		auto tuple_res = getFirstTuple();
+		while(tuple_res.first){//get tuple
+			auto & tupleIter = tuple_res.second;
+			record::DataAndLoc dataAndLoc;
+			dataAndLoc.block_no = tupleIter->block->header.number;
+			dataAndLoc.offset = tupleIter->data - bufferManager->read(getFullPath(*this, dataAndLoc.block_no));
+			dataAndLoc.data = dataUnit::getFieldDataFromBuffer(name, fieldName, tupleIter->data, catalogManager);
+			dataAndLocs.push_back(std::move(dataAndLoc));
+			tuple_res = getNextTuple(tuple_res.second); //next tuple
+		}
+		return dataAndLocs;
+	}
+
+	std::list<record::Tuple> RelationManager::getTuplesByLoc(std::list<DataAndLoc> dataAndLocs){
+		std::list <record::Tuple> res;
+
+	}
 }

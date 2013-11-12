@@ -3,23 +3,6 @@
 #include "RecordManager.hpp"
 #include "DataUnit.hpp"
 
-/** Usage:
-*	if some field compare with some value is true
-*/
-/*
-template<typename T>
-T wrapper(const DataUnit& data);
-
-template<>
-float wrapper<float>(const DataUnit& data){
-	return data.fl;
-}
-
-template<>
-int wrapper<int>(const DataUnit& data){
-	return data.integer;
-}*/
-
 //condition: what attribute(field) compair with what
 class Condition {
 public:

@@ -33,17 +33,17 @@ public:
 	/**	change pin to prevent or release lock of that block
 	  *	available only when block exist in buffer
 	  */
-//	bool lock(const std::string& filePath);
 	bool unlock(const std::string& filePath);
 
 	/**	read from file to memory, 
 	  * this function will automatically lock the block and
 	  * user must release the block after read operation done
-	  * will not save any dirty data replaced in the buffer
+	  * will save dirty data replaced in the buffer
 	  *	
-	  * @return: the pointer to the address of block in the memory  
+	  * @return: the pointer to the address of block in the memory 
+	  *		will throw exception CannotOpenFile if cannot access the file
 	  */
-	DataPtr read(const std::string& filePath);
+	DataPtr read (const std::string& filePath) throw (CannotOpenFile);
 
 	/** write data in memory
 	  * will not save to the file unless user call writeBack function

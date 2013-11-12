@@ -74,10 +74,6 @@ inline size_t getTupleLen(const MetaRelation& relation){
 	}
 	return len;
 }
-
-//get a list sorted with num order from the original map
-extern std::list<Field> get_sorted_field_list(const MetaRelation::fieldSet& fields);
-extern size_t get_field_offset(const std::list<Field> & fieldList, const Field *field);
 } // catalog
 
 /** to create Relation or index info, user should first create field by themselves

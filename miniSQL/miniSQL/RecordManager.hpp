@@ -12,6 +12,7 @@ class RecordManager
 public:
 	static const std::string directoryName;
 	typedef std::list<std::list<DataUnit>> RecordSet;
+	typedef std::list<record::RelationManager::TupleIter> SeletionSet; //used for seletion
 	typedef std::map<std::string, record::RelationManager> RelationSet;
 	typedef std::pair<std::string, record::RelationManager> RelationPair;
 	typedef RelationSet::iterator RelationIter;
@@ -19,6 +20,8 @@ public:
 public:
 	RecordManager(void);
 	virtual ~RecordManager(void);
+
+	SeletionSet getSeletionSet(const std::string& table_name);//get all tuples of the relation
 
 	RecordSet select(const std::string& table_name){ //select from
 		return select(table_name, std::list<Condition>());
@@ -31,6 +34,11 @@ public:
 
 	void deleteTuples(const std::string& table_name, const std::list<Condition>& conditions);	//delete from where ...
 	void insert(const std::string& table_name, std::list<DataUnit>& datas);
+
+	/* called by index manager, return all the value and location info 
+	 * about the attribute of that relation
+	 */
+	std::list<record::DataAndLoc> getAllValueAndLoc(const std::string& table_name, const std::string& fieldName);
 private:
 	typedef record::DataPtr DataPtr;
 private:

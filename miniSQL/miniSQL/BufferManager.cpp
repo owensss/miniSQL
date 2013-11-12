@@ -8,6 +8,10 @@ BufferManager::BufferManager(void)
 
 BufferManager::~BufferManager(void)
 {
+	for(auto &block :list){
+		if(block.dirt)
+			writeBack(block.filePath);
+	}
 	delete []contents;
 }
 

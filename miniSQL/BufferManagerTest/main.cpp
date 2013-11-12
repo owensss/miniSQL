@@ -1,26 +1,28 @@
 #include "stdafx.h"
 #include "../MiniSQL/BufferManager.hpp"
 #include "../miniSQL/CatalogManager.hpp"
+#include "../miniSQL/blockReadWrite.hpp"
 #include <iostream>
+#include <string>
 
 //#define CREATE_TABLE
 //#define READ_TABLE
 //#define BUFFER_MANAGER
-//#define CREATE_INDEX
 //#define READ_INDEX
 //#define INTERPRETER
-#define API
-
-#ifdef CREATE_INDEX
+//#define API
+/*
 int main(){
 	BufferManager bufferManager;
 	CatalogManager catalogManager(&bufferManager);
-
+	
 	auto &relation = catalogManager.getRelationInfo("student");
-	catalogManager.createIndexInfo("stunameidx", "student", &relation.fields.at("sname"));
+//	auto &index = catalogManager.getIndexInfo("stunameidx");
+//	catalogManager.createIndexInfo("stunameidx", "student", &relation.fields.at("sname"));
+
+
 	return 0;
-}
-#endif
+}*/
 
 #ifdef READ_INDEX
 int main(){
@@ -41,10 +43,10 @@ int main(void){
 	BufferManager bufferManager;
 	CatalogManager catalogManager(&bufferManager);
 
-	catalog::Field sno(std::string("sno"), catalog::Field::CHARS, 8, false);
-	catalog::Field sname(std::string("sname"), catalog::Field::CHARS, 16, true);
-	catalog::Field sage(std::string("sage"), catalog::Field::INT, 0, false);
-	catalog::Field sgender(std::string("sgender"), catalog::Field::CHARS, 1, false);
+	catalog::Field sno(std::string("sno"), catalog::Field::CHARS, 8, false, 0);
+	catalog::Field sname(std::string("sname"), catalog::Field::CHARS, 16, true, 1);
+	catalog::Field sage(std::string("sage"), catalog::Field::INT, 0, false, 2);
+	catalog::Field sgender(std::string("sgender"), catalog::Field::CHARS, 1, false, 3);
 
 	catalog::MetaRelation::fieldSet field_set;
 	field_set.insert(std::pair<std::string, catalog::Field> ("sno", sno));
