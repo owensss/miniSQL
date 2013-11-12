@@ -1,5 +1,6 @@
 #pragma once
 #include "BufferManager.hpp"
+#include "common_exception.hpp"
 #include <string>
 #include <map>
 #include <algorithm>
@@ -91,47 +92,75 @@ public:
 
 	void createRelationInfo(const std::string& name, const catalog::MetaRelation::fieldSet& fields, 
 		const catalog::Field *primary_key){
-			relations.insert(
+		auto res =	relations.insert(
 				std::pair<std::string, catalog::MetaRelation>
 				(name, (catalog::MetaRelation(name, fields, primary_key))));
 		writeRelationData(name);
+		if(!res.second)//already exists
+			throw duplicate(name);
 	}
 	void dropRelationInfo(const std::string& name){
-		auto& relation = relations.at(name);
-		auto indexes = relation.indexes; //a copy of index
-		for(auto &index_pair : indexes){//remove all index files of that relation
-			dropIndexInfo(index_pair.second->index_name);
-		}
-		relations.erase(name); //remove relation
-		remove((directoryName+name).c_str()); //delete file
+		try{
+			auto& relation = relations.at(name);
+			auto indexes = relation.indexes; //a copy of index
+			for(auto &index_pair : indexes){//remove all index files of that relation
+				dropIndexInfo(index_pair.second->index_name);
+			}
+			relations.erase(name); //remove relation
+			remove((directoryName+name).c_str()); //delete file
+		}catch(std::out_of_range e){
+			throw not_exists(name);}
 	}
 
 	void createIndexInfo(const std::string& index_name, const std::string& relation_name, 
 		const catalog::Field *field){
+		try{
 			catalog::MetaRelation& relation = relations.at(relation_name);
 			indexSet::iterator index_iter = indexes.insert(std::pair<std::string, catalog::IndexInfo>
 				(index_name, (catalog::IndexInfo(index_name, field, &relation)))).first;
-			relation.indexes.insert(
+			auto res = relation.indexes.insert(
 				std::pair<const std::string, const catalog::IndexInfo*>(index_name, &(*index_iter).second));//insert ref
-		writeIndexData(index_name);
+			if(!res.second){
+				throw duplicate(index_name);
+			}
+			writeIndexData(index_name);
+		}catch(std::out_of_range e){
+			throw not_exists(relation_name);
+		}
 	}
 	void dropIndexInfo(const std::string& index_name){
+		try{
 		auto &index = indexes.at(index_name);
 		auto &relation = index.relation;
 		(relation->indexes).erase(index_name);//remove index ref in relation
 		indexes.erase(index_name); //remove index from manager
 		remove((directoryName+index_name).c_str());//remove file of that index
 		writeRelationData(relation->name); //update relation info
+		}catch (std::out_of_range e){
+			throw not_exists(index_name);
+		}
 	}
 
 	const catalog::MetaRelation& getRelationInfo(const std::string& name) const{
-		return relations.at(name);
+		try{
+			return relations.at(name);
+		}catch(std::out_of_range e){
+			throw not_exists(name);
+		}
 	}
 	const catalog::Field& getFieldInfo(const std::string& relation_name, const std::string& field_name) const{
-		return relations.at(relation_name).fields.at(field_name);
+		try{
+		return getRelationInfo(relation_name).fields.at(field_name);
+		}catch(std::out_of_range e){
+			throw not_exists(field_name);
+		}
 	}
 	const catalog::IndexInfo& getIndexInfo(const std::string& index_name) const{
-		return indexes.at(index_name);
+		try{
+			return indexes.at(index_name);
+		}catch(std::out_of_range e){
+			throw not_exists(index_name);
+		}
 	}
 private:
 	static const std::string directoryName;

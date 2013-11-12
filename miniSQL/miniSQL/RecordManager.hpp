@@ -20,11 +20,13 @@ public:
 	RecordManager(void);
 	virtual ~RecordManager(void);
 
-	RecordSet select(const std::string& table_name);	//select from
+	RecordSet select(const std::string& table_name){ //select from
+		return select(table_name, std::list<Condition>());
+	}
 	RecordSet select(const std::string& table_name, const std::list<Condition> conditions);	//select from where ...
 
 	void deleteAllTuples(const std::string& table_name) {
-		addRelation(table_name)->second.deleteAll();
+		deleteTuples(table_name, std::list<Condition>());
 	}	//delete from
 
 	void deleteTuples(const std::string& table_name, const std::list<Condition>& conditions);	//delete from where ...

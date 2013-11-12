@@ -15,7 +15,7 @@ namespace{
 		size_t tupleLen = catalog::getTupleLen(catalogManager->getRelationInfo(relationName));
 		DataPtr data = new byte[tupleLen];
 		DataPtr ptr = data;
-		std::list<catalog::Field> fields = get_sorted_field_list(relationInfo.fields);
+		std::list<catalog::Field> fields = get_sorted_field_list(relationInfo.fields); //fields with order
 		auto &iter = datas.begin();
 		for(auto &field: fields){
 			switch(field.type){
@@ -84,18 +84,15 @@ RecordManager::~RecordManager(void)
 }
 
 namespace {
-	
-}
+	//test if all conditions satisfy
+	bool testConditions(const std::list<Condition>& conditions, const record::Tuple& tuple,
+		const std::string& relation_name, CatalogManager *catalogManager){
+		if(conditions.empty()) //if no condition return true
+			return true;
 
-void RecordManager::deleteTuples(const std::string& table_name, const std::list<Condition>& conditions){
-	addRelation(table_name);
-	auto& relationManager = relations.at(table_name);
-	auto& relationInfo = catalogManager->getRelationInfo(table_name);
-	auto fieldList = catalog::get_sorted_field_list(relationInfo.fields);//ordered list of fields
+		auto dataUnitList = tupleToDataUnit(
+			relation_name, tuple, catalogManager);
 
-	auto tuple_res = relationManager.getFirstTuple();
-	while(tuple_res.first){//get tuple
-		auto dataUnitList = tupleToDataUnit(table_name, *tuple_res.second, catalogManager);
 		auto& iter = conditions.begin();
 		auto& end = conditions.end();
 		for(	; iter != end; iter++){
@@ -104,16 +101,38 @@ void RecordManager::deleteTuples(const std::string& table_name, const std::list<
 			std::advance(dataUnitIter, field->num);
 			DataUnit data = *dataUnitIter;
 			if(!iter->test(data))
-				break;
+				return false;
 		}
-		if(iter == conditions.end()) //pass all test
-			relationManager.deleteTuple(tuple_res.second);
+
+		return iter == conditions.end();
+		//pass all test
 	}
 }
 
-RecordManager::RecordSet RecordManager::select(const std::string& table_name){
-	//TODO
-	return RecordSet();
+void RecordManager::deleteTuples(const std::string& table_name, const std::list<Condition>& conditions){
+	addRelation(table_name);
+	auto& relationManager = relations.at(table_name);
+
+	auto tuple_res = relationManager.getFirstTuple();
+	while(tuple_res.first){//get tuple
+		if(testConditions(conditions, *tuple_res.second, table_name, catalogManager))
+			relationManager.deleteTuple(tuple_res.second);
+		tuple_res = relationManager.getNextTuple(tuple_res.second); //next tuple
+	}
+}
+
+RecordManager::RecordSet RecordManager::select(const std::string& table_name, const std::list<Condition> conditions){
+	RecordSet records;
+	addRelation(table_name);
+	auto& relationManager = relations.at(table_name);
+
+	auto tuple_res = relationManager.getFirstTuple();
+	while(tuple_res.first){//get tuple
+		if(testConditions(conditions, *tuple_res.second, table_name, catalogManager))
+			records.push_back(tupleToDataUnit(table_name, *tuple_res.second, catalogManager));
+		tuple_res = relationManager.getNextTuple(tuple_res.second); //next tuple
+	}
+	return records;
 }
 
 void RecordManager::insert(const std::string& table_name, std::list<DataUnit>& datas){

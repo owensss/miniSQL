@@ -28,8 +28,8 @@ public:
 	//less than, greater than, equal, not equal,
 	//less or equal, greater or equal
 
-	Condition(compare_type comp, const catalog::Field* field)
-		: comp(comp), m_field(field){}
+	Condition(compare_type comp, const catalog::Field* field, DataUnit val)
+		: comp(comp), m_field(field), val(val){}
 
 	virtual ~Condition(){};
 
@@ -78,7 +78,7 @@ private:
 			case GE:
 				return compRes >= 0;
 			default:
-				false;
+				return false;
 		}
 	}
 private:

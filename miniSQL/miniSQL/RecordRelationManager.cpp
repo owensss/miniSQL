@@ -186,7 +186,7 @@ namespace record{
 		auto fileNames = getFileNamesWithPrefix((RecordManager::directoryName + "\\" + name + "_").c_str());
 		for(auto& fileName: fileNames)
 			remove(fileName.c_str());
-	}//TODO: check
+	}
 
 	std::pair<bool, RelationManager::TupleIter> RelationManager::getFirstTuple(size_t block_num){
 		if(!readBlock(block_num) || getBlock(block_num).tuples.empty()) //no such file or no tuples
