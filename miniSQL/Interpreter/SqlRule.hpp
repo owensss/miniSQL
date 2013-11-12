@@ -4,8 +4,6 @@
 #include "parse_exception.h"
 #include <functional>
 
-#include <iostream>
-
 /**
  * this class accept token list as input, offers
  * a set of 'match' functions = =b
@@ -44,9 +42,9 @@ public:
 
 	SqlRule& match(const std::string& input) {
 		if (iter == end) {
-			throw unexpected_end_of_input_exception(*--iter, input.c_str());
+			throw unexpected_end_of_input_exception(*--iter, ("'"+input+"'").c_str());
 		} else if (iter->value != input) {
-			throw unexpected_token_exception(*iter, input.c_str());
+			throw unexpected_token_exception(*iter, ("'"+input+"'").c_str());
 		} 
 		++iter;
 		return *this;
@@ -116,21 +114,29 @@ public:
 		++iter;
 		return *this;
 	}
-	SqlRule& parseValue(token& value) {
-		if (iter == end)
-			throw unexpected_end_of_input_exception(*--iter, "a value");
-		else if (iter->type != token_enum::SingleQuote || iter->type != token_enum::Quote
-			|| iter->type != token_enum::Int || iter->type != token_enum::Double)
-			throw unexpected_token_exception(*iter, "a value");
 
-		value = *iter;
-		++iter;
-		return *this;
-	}
 	bool testQuote() {
 		if (iter == end || (iter->type != token_enum::SingleQuote && iter->type != token_enum::Quote))
 			return false;
 		return true;
+	}
+
+	SqlRule& parseValue(token& value) {
+		if (iter == end)
+			throw unexpected_end_of_input_exception(*--iter, "a value");
+		else if (iter->type != token_enum::SingleQuote && iter->type != token_enum::Quote
+			&& iter->type != token_enum::Int && iter->type != token_enum::Double) {
+			throw unexpected_token_exception(*iter, "a value");
+		}
+
+		value = *iter;
+		if (testQuote()) {
+			parseQuote(value.value);
+			// iter advanced
+		} else {
+			++iter;
+		}
+		return *this;
 	}
 
 	SqlRule& parseOperator(std::string& value) {
@@ -138,7 +144,8 @@ public:
 			throw unexpected_end_of_input_exception(*--iter, "an operator");
 		} else if (iter->type != token_enum::Symbol || (
 			iter->value != ">" && iter->value != "<" && iter->value != ">=" &&
-			iter->value != "<=" && iter->value != "==" && iter->value != "!=")
+			iter->value != "<=" && iter->value != "==" && iter->value != "!=" &&
+			iter->value != "=")
 		) {
 			throw unexpected_token_exception(*iter, "an operator");
 		} 
@@ -148,6 +155,7 @@ public:
 
 		return *this;
 	}
+
 	bool testOperator() {
 		if (iter == end || iter->type != token_enum::Symbol || (
 			iter->value != ">" && iter->value != "<" && iter->value != ">=" &&
@@ -156,7 +164,25 @@ public:
 			return false;
 		return true;
 	}
+		
+	SqlRule& parseFilename(std::string& value) {
+		if (iter == end) throw unexpected_end_of_input_exception(*--iter, "filename");
 
+		value = iter->value;
+		++iter;
+
+		if (iter == end) return *this;
+		else if (iter->value != ".") return *this;
+		else { // .
+			std::string tmp;
+
+			advance().parseString(tmp);
+			value += "."+tmp;
+		}
+
+		return *this;
+	}
+	
 	bool test(const std::string& input) {
 		if (iter == end || iter->value != input) {
 			return false;

@@ -94,6 +94,7 @@ private:
 	const char* parseQuote(const char* p, token& result) const;
 	const char* parseSingleQuote(const char* p, token& result) const;
 	const char* parseWord(const char* p, token& result) const ;
+	const char* parseSymbol(const char* p, token& result) const;
 private:
 	/**
 	 * the separater and skipper, force user to assign them in construction

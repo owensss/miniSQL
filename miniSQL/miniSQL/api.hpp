@@ -40,7 +40,7 @@ public:
 	void insertInto(const std::string& table_name, const std::list<token> datas);
 	void deleteFromTable(const std::string& tablename);
 	void deleteFromTable(const std::string& tablename, const std::list<detail::Condition> conditions);
-	void execfile(const std::string& filename) ;
+	bool execfile(const std::string& filename) ;
 	void quit();
 private:
 	BufferManagerType buffer; // buffer shall be initialized before all other memebers
