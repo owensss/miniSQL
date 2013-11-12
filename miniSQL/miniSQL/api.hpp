@@ -2,6 +2,7 @@
 #define API_HPP
 #include <memory>
 #include "../minisql/RecordManager.hpp"
+#include "../Interpreter/Interpreter.hpp"
 
 class CatalogManager;
 class BufferManager;
@@ -29,17 +30,18 @@ public:
 	~Api() { } // do nothing
 public:
 	void createTable(const std::string& name, const catalog::MetaRelation::fieldSet& fields, 
-		const catalog::Field *primary_key);
+		const std::string& pri_key);
 	void dropTable(const std::string& tablename);
 	void createIndex(const std::string& indexname, const std::string& tablename, 
-		const catalog::Field *field);
+		const std::string& attrname);
 	void dropIndex(const std::string& indexname);
 	RecordSet selectFrom(const std::string& tablename);
-	RecordSet selectFrom(const std::string& tablename, const std::list<Condition>& conditions);
-	void insertInto(const std::string& table_name, const std::list<DataUnit> datas);
+	RecordSet selectFrom(const std::string& tablename, const std::list<detail::Condition>& conditions);
+	void insertInto(const std::string& table_name, const std::list<token> datas);
 	void deleteFromTable(const std::string& tablename);
-	void deleteFromTable(const std::string& tablename, const std::list<Condition> conditions);
+	void deleteFromTable(const std::string& tablename, const std::list<detail::Condition> conditions);
 	void execfile(const std::string& filename) ;
+	void quit();
 private:
 	BufferManagerType buffer; // buffer shall be initialized before all other memebers
 	CatalogManagerType catalog;

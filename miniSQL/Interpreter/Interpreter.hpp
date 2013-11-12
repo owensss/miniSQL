@@ -9,6 +9,15 @@ namespace api {
 	class Api;
 }
 
+
+namespace detail {
+	struct Condition {
+		std::string name;
+		std::string op;
+		token value;
+	};
+}
+
 class Interpreter {
 public:
 	typedef Tokenizer::token_type token_type;
@@ -27,8 +36,10 @@ public:
 	 * if the statement syntax is incorrect, it'll throw error. If multiple statements
 	 * are given, it'll parse them all. statements are seperated by ';'
 	 * the implementation calls tokenize then calls parse
+	 *
+	 * if quit, return false; else return true
 	 */
-	void interprete(const std::string& str) const;
+	bool interprete(const std::string& str) const;
 
 	/**
 	 * split strings into statements and return the statements.
@@ -42,8 +53,9 @@ public:
 
 	/**
 	 * take tokens as input and call sql api as output
+	 * if quit, return false, else return true;
 	 */
-	void PaRsE(const tokenlist_type& tokens) const;
+	bool PaRsE(const tokenlist_type& tokens) const;
 private:
 	void parseCreate(const tokenlist_type& tokens, SqlRule& rule) const;
 	void parseCreateTable(const tokenlist_type& tokens, SqlRule& rule) const;
