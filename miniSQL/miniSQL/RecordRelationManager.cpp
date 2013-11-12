@@ -21,6 +21,8 @@ namespace{
 	}
 }
 
+const unsigned int record::Tuple::NULL_OFFSET = UINT_MAX; 
+
 namespace record{
 	const size_t RelationManager::GREATEST_BLOCKS_CAPACITY = 10; //buffer 10 blocks for one relation
 
