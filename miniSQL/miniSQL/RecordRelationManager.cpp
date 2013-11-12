@@ -219,9 +219,4 @@ namespace record{
 		}
 		return dataAndLocs;
 	}
-
-	std::list<record::Tuple> RelationManager::getTuplesByLoc(std::list<DataAndLoc> dataAndLocs){
-		std::list <record::Tuple> res;
-
-	}
 }
