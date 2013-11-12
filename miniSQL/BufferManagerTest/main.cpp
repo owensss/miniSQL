@@ -8,7 +8,8 @@
 //#define BUFFER_MANAGER
 //#define CREATE_INDEX
 //#define READ_INDEX
-#define INTERPRETER
+//#define INTERPRETER
+#define API
 
 #ifdef CREATE_INDEX
 int main(){
@@ -102,4 +103,25 @@ int main() {
 	rule.reset().select();
 	getchar();
 }
+#endif
+
+#ifdef API
+
+#include "..\Interpreter\SqlRule.hpp"
+#include "..\Interpreter\Tokenizer.hpp"
+#include <iostream>
+
+using namespace std;
+
+int main() {
+	Interpreter interpreter;
+	try {
+		interpreter.interprete("select * from AAA");
+	} catch (const exception& e) {
+		cerr << e.what();
+		getchar();
+	}
+	getchar();
+}
+
 #endif

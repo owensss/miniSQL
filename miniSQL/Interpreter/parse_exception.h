@@ -33,7 +33,7 @@ class unexpected_token_exception : public parse_exception {
 public:
 	unexpected_token_exception(const token& tk, const char* expect) throw() 
 		:parse_exception(tk), expect_(new char[255]) {
-			strncpy(expect_, expect, 254);
+			strncpy_s(expect_, 254, expect, 254);
 	}
 	~unexpected_token_exception() throw() {}
 	
@@ -52,7 +52,7 @@ class unexpected_end_of_input_exception : public parse_exception {
 public:
 	unexpected_end_of_input_exception(const token& tk, const char* expect) 
 		throw() :parse_exception(tk) , expect_(new char[255]) {
-			strncpy(expect_, expect, 254);
+			strncpy_s(expect_, 254, expect, 254);
 	}
 	~unexpected_end_of_input_exception() {}
 

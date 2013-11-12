@@ -4,6 +4,8 @@
 #include "parse_exception.h"
 #include <functional>
 
+#include <iostream>
+
 /**
  * this class accept token list as input, offers
  * a set of 'match' functions = =b
@@ -16,7 +18,7 @@ public:
 	typedef tokenlist_type::const_iterator iterator;
 public:
 	SqlRule(const tokenlist_type* tk, iterator iter) :
-		tokens(tk), iter(iter) {}
+		tokens(tk), iter(iter) {end = tk->end();}
 	~SqlRule() {}
 
 	void clear() { tokens = nullptr;}
@@ -31,23 +33,33 @@ public:
 	iterator mismatch() const { return fail; }
 	std::string expect() const { return expect_word;}
 
+	SqlRule& advance() {
+		++iter;
+		return *this;
+	}
+
+	bool isEnd() const {
+		return iter == end;
+	}
+
 	SqlRule& match(const std::string& input) {
-		if (iter->value != input) {
+		if (iter == end) {
+			throw unexpected_end_of_input_exception(*--iter, input.c_str());
+		} else if (iter->value != input) {
 			throw unexpected_token_exception(*iter, input.c_str());
-		} else if (iter == end) {
-			throw unexpected_end_of_input_exception(token(), input.c_str());
-		}
+		} 
 		++iter;
 		return *this;
 	}
 	SqlRule& parseString(std::string& value) {
-		if (iter == end || iter->type != token_enum::Word) {
+		if (iter == end) {
+			throw unexpected_end_of_input_exception(*--iter, "a word");
+		} else if (iter->type != token_enum::Word) {
 			throw unexpected_token_exception(*iter, "a word");
 		}
-		++iter;
-
 		value = iter->value;
 
+		++iter;
 		return *this;
 	}
 	bool testString() {
@@ -57,13 +69,14 @@ public:
 	}
 
 	SqlRule& parseInt(int& value) {
-		if (iter == end || iter->type != token_enum::Int) {
-			throw unexpected_token_exception(*iter, "a integer");
+		if (iter == end) {
+			throw unexpected_end_of_input_exception(*--iter, "an integer");
+		} else if (iter->type != token_enum::Int) {
+			throw unexpected_token_exception(*iter, "an integer");
 		}
-		++iter;
-
 		value = atoi(iter->value.c_str());
-
+		
+		++iter;
 		return *this;		
 	}
 	bool testInt() {
@@ -73,13 +86,14 @@ public:
 	}
 
 	SqlRule& parseFloat(float& value) {
-		if (iter == end || iter->type != token_enum::Int) {
+		if (iter == end) {
+			throw unexpected_end_of_input_exception(*--iter, "a float");
+		} else if (iter->type != token_enum::Double) {
 			throw unexpected_token_exception(*iter, "a float");
 		}
+		value = static_cast<float>(atof(iter->value.c_str()));
+		
 		++iter;
-
-		value = atof(iter->value.c_str());
-
 		return *this;	
 	}
 	bool testFloat() {
@@ -89,7 +103,9 @@ public:
 	}
 
 	SqlRule& parseQuote(std::string& value) {
-		if (iter == end || (iter->type != token_enum::SingleQuote && iter->type != token_enum::Quote)) {
+		if (iter == end) {
+			throw unexpected_end_of_input_exception(*--iter, "a quoted string");
+		} else if (iter->type != token_enum::SingleQuote && iter->type != token_enum::Quote) {
 			throw unexpected_token_exception(*iter, "a quoted string");
 		}
 		value.clear();
@@ -100,6 +116,17 @@ public:
 		++iter;
 		return *this;
 	}
+	SqlRule& parseValue(token& value) {
+		if (iter == end)
+			throw unexpected_end_of_input_exception(*--iter, "a value");
+		else if (iter->type != token_enum::SingleQuote || iter->type != token_enum::Quote
+			|| iter->type != token_enum::Int || iter->type != token_enum::Double)
+			throw unexpected_token_exception(*iter, "a value");
+
+		value = *iter;
+		++iter;
+		return *this;
+	}
 	bool testQuote() {
 		if (iter == end || (iter->type != token_enum::SingleQuote && iter->type != token_enum::Quote))
 			return false;
@@ -107,12 +134,14 @@ public:
 	}
 
 	SqlRule& parseOperator(std::string& value) {
-		if (iter == end || iter->type != token_enum::Symbol || (
+		if (iter == end) {
+			throw unexpected_end_of_input_exception(*--iter, "an operator");
+		} else if (iter->type != token_enum::Symbol || (
 			iter->value != ">" && iter->value != "<" && iter->value != ">=" &&
 			iter->value != "<=" && iter->value != "==" && iter->value != "!=")
 		) {
 			throw unexpected_token_exception(*iter, "an operator");
-		}
+		} 
 
 		value = iter->value;
 		++iter;
@@ -153,9 +182,6 @@ public:
 		end
 	!!! CODE END !!!
 	 */
-	SqlRule& advance() {
-		++iter;
-	}
 	SqlRule& lbracket() {
 		return match("(");
 	}

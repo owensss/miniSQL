@@ -4,6 +4,11 @@
 #include "..\Interpreter\Interpreter.hpp"
 #include <list>
 #include <fstream>
+#define INTERPRETER_ONLY
+
+#ifdef INTERPRETER_ONLY
+#include <iostream>
+#endif
 
 using namespace std;
 
@@ -17,9 +22,12 @@ namespace api {
 	}
 
 	void Api::createTable(const std::string& name, const catalog::MetaRelation::fieldSet& fields, 
-		const catalog::Field *primary_key) {
-
-		catalog->createRelationInfo(name, fields, primary_key);
+		const std::string& primary_key) {
+#ifdef INTERPRETER_ONLY
+#else
+			const catalog::Field* pri = &fields.at(primary_key);
+		catalog->createRelationInfo(name, fields, pri);
+#endif
 	}
 
 	void Api::dropTable(const std::string& name) {
@@ -27,8 +35,11 @@ namespace api {
 	}
 
 	void Api::createIndex(const std::string& indexname, const std::string& tablename, 
-		const catalog::Field *field) {
-			catalog->createIndexInfo(indexname, tablename, field);
+		const std::string& attrname) {
+		
+		const auto& field = catalog->getFieldInfo(tablename, attrname);
+		catalog->createIndexInfo(indexname, tablename, &field);
+		/// TODO
 	}
 
 	void Api::dropIndex(const std::string& indexname) {
@@ -36,23 +47,34 @@ namespace api {
 	}
 
 	Api::RecordSet Api::selectFrom(const std::string& tablename) {
+		/// TODO
+#ifdef INTERPRETER_ONLY
+		cerr << "select from#" << tablename; 
+		return Api::RecordSet();
+#else
 		return record->select(tablename);
+#endif
 	}
 
-	Api::RecordSet Api::selectFrom(const std::string& tablename, const list<Condition>& cond) {
-		return record->select(tablename, cond);
+	Api::RecordSet Api::selectFrom(const std::string& tablename, const list<detail::Condition>& cond) {
+		/// TODO
+		// return record->select(tablename, cond);
+		return Api::RecordSet();
 	}
 
-	void Api::insertInto(const std::string& tablename, std::list<DataUnit> datas) {
-		record->insert(tablename, datas);
+	void Api::insertInto(const std::string& tablename, std::list<token> datas) {
+		/// record->insert(tablename, datas);
+		/// TODO
 	}
 
 	void Api::deleteFromTable(const string& tablename) {
 		record->deleteAllTuples(tablename);
+		/// TODO
 	}
 
-	void Api::deleteFromTable(const string& tablename, const std::list<Condition> cond) {
-		record->deleteTuples(tablename, cond);
+	void Api::deleteFromTable(const string& tablename, const std::list<detail::Condition> cond) {
+		// record->deleteTuples(tablename, cond);
+		/// TODO
 	}
 
 	void Api::execfile(const std::string& filename) {
@@ -71,5 +93,9 @@ namespace api {
 			}
 			interpreter.interprete(all);
 		}
+	}
+
+	void Api::quit() {
+		return ;
 	}
 }
