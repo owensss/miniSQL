@@ -96,7 +96,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Interpreter\Interpreter.cpp" />
-    <ClCompile Include="..\Interpreter\main.cpp" />
     <ClCompile Include="..\Interpreter\parse_error.cpp" />
     <ClCompile Include="..\Interpreter\Tokenizer.cpp" />
     <ClCompile Include="Api.cpp" />

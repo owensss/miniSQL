@@ -93,9 +93,9 @@ namespace record{
 		/* get the first nonDeletedTuple of the relation, if no tuple then return set.end
 		 * bool return if iterator exists
 		 */
-		std::pair<bool, TupleConstIter> getFirstTuple(size_t block_num); // get first tuple of block_n
-		std::pair<bool, TupleConstIter> getFirstTuple(){ return getFirstTuple(0); }	// get first tuple of block_0
-		std::pair<bool, TupleConstIter> getNextTuple(TupleConstIter tuple);
+		std::pair<bool, TupleIter> getFirstTuple(size_t block_num); // get first tuple of block_n
+		std::pair<bool, TupleIter> getFirstTuple(){ return getFirstTuple(0); }	// get first tuple of block_0
+		std::pair<bool, TupleIter> getNextTuple(TupleIter tuple);
 
 		void deleteTuple(TupleIter tuple); // add tuple to the free list and remove from the block
 
@@ -115,7 +115,7 @@ namespace record{
 		 * else read in the block from disk
 		 * user should assure that the block is exists in the disk
 		 */
-		const record::Block& getBlock(size_t block_num){
+		record::Block& getBlock(size_t block_num){
 			auto iter = blocks.find(block_num);
 			if(iter == blocks.end())  //if not exists then read
 				readBlock(block_num);

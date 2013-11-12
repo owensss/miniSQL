@@ -6,7 +6,7 @@
 /** Usage:
 *	if some field compare with some value is true
 */
-
+/*
 template<typename T>
 T wrapper(const DataUnit& data);
 
@@ -18,7 +18,7 @@ float wrapper<float>(const DataUnit& data){
 template<>
 int wrapper<int>(const DataUnit& data){
 	return data.integer;
-}
+}*/
 
 //condition: what attribute(field) compair with what
 class Condition {
@@ -37,69 +37,52 @@ public:
 		return m_field;
 	}
 
-//	virtual bool test(DataUnit data) = 0;
+	bool test(const DataUnit& data) const{
+		switch(m_field->type){
+		case catalog::Field::CHARS:
+			return test(data.str);
+		case catalog::Field::FLOAT:
+			return test(data.fl);
+		case catalog::Field::INT:
+			return test(data.integer);
+		default:
+			return false;
+		}
+	}
+
+private:
+	bool test(float lhs) const { return matchCompType(lhs - val.fl); }
+
+	bool test(int lhs) const { return matchCompType(lhs-val.integer); }
+
+	bool test(const char* lhs) const {
+		auto rhs = val.str;
+		size_t size = m_field->char_n;
+		return matchCompType(strncmp(lhs, rhs, size));
+	}
 	/** have value val and function test
 	*	of different type
 	*/
-protected:
+	bool matchCompType(int compRes) const{
+		switch (comp) {
+			case LT:
+				return compRes < 0;
+			case GT:
+				return compRes > 0;
+			case EQ:
+				return compRes == 0;
+			case NE:
+				return compRes != 0;
+			case LE:
+				return compRes <= 0;
+			case GE:
+				return compRes >= 0;
+			default:
+				false;
+		}
+	}
+private:
 	const catalog::Field* m_field;//condition is concerned with some attribute
 	compare_type comp;
-};
-
-template <typename T>
-class Cond : Condition{
-public:
-	Cond(T val, compare_type comp, const catalog::Field* field)
-		: Condition(comp, field), val(val){}
-public:
-	bool test(T lhs){
-		switch (comp) {
-		case LT:
-			return lhs < val;
-		case GT:
-			return lhs > val;
-		case EQ:
-			return lhs == val;
-		case NE:
-			return lhs != val;
-		case LE:
-			return lhs <= val;
-		case GE:
-			return lhs >= val;		
-		}
-	}
-
-	T test(DataUnit data){
-		return wrapper(data);
-	}
-private:
-	T val;
-};
-
-template <>
-class Cond<std::string> : Condition{
-public:
-	Cond(std::string& val, compare_type comp, const catalog::Field* field)
-		:Condition(comp, field), val(val){}
-public:
-	bool test(std::string lhs){
-		switch (comp) {
-		case LT:
-			return lhs.compare(val) < 0;
-		case GT:
-			return lhs.compare(val) > 0;
-		case EQ:
-			return lhs.compare(val) == 0;
-		case NE:
-			return lhs.compare(val) != 0;
-		case LE:
-			return lhs.compare(val) <= 0;
-		case GE:
-			return lhs.compare(val) >= 0;
-		}
-	}
-
-	bool test(DataUnit data){ return test(std::string(data.str));}
-private:
-	std::string val;
+	DataUnit val;
 };

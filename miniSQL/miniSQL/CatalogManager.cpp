@@ -36,10 +36,43 @@ public:
 public:
 //	[std::string name;] 
 	catalog::Field::field_type type;
-	size_t char_n;
+	uint8_t char_n;
 	uint8_t unique; //use char instead of bool
 };
 
+}
+
+namespace catalog{
+std::list<Field> get_sorted_field_list(const MetaRelation::fieldSet& fields){
+	std::list<Field> fieldList;
+	std::transform(fields.begin(), fields.end(), std::back_inserter(fieldList), 
+		[](const std::pair<std::string, Field>& val){return val.second;} );
+	fieldList.sort([](const Field& lhs, const Field& rhs){return lhs.num > rhs.num;});
+	return std::move(fieldList);
+}
+
+
+size_t get_field_offset(const std::list<Field> & fieldList, const Field *field){
+	size_t offset = 0;
+	auto& end = fieldList.end();
+	for(auto& iter = fieldList.begin(); iter != end && iter->name != field->name; iter++){
+		offset += getFieldLen(*iter);
+	}
+	return offset;
+}
+
+size_t getFieldLen(const Field& field){
+	switch(field.type){
+	case Field::FLOAT:
+	case Field::INT:
+		return 4;
+	case Field::CHARS:
+		return field.char_n;
+	default:
+		//should not occur
+		return 0;
+	}
+}
 }
 void CatalogManager::writeRelationData(const std::string& relation_name){
 	const auto& relation = relations.at(relation_name);//get relation handle

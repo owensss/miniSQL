@@ -89,13 +89,16 @@ BufferManager::block_iter BufferManager::LRU_substitution(void){
 	return (++rit).base();
 }
 BufferManager::block_iter BufferManager::addBlock(const std::string& filePath){
-	if(list.size() < BLOCK_NUM){//buffer not filled
+	if(list.size() < BLOCK_NUM){ //buffer not filled
 		list.push_front(buffer::Block(filePath, list.size(), false, false));
 		//add a new block to the buffer
 		return list.begin();
 	}
-	else{//buffer filled
-		auto newBlock = LRU_substitution();
+	else{ //buffer filled
+		auto& victim = LRU_substitution();
+		if(victim->dirt)
+			writeBack(victim->filePath);
+		auto& newBlock = victim;
 		newBlock->filePath = filePath;
 		newBlock->dirt = false;
 		newBlock->pin = false;

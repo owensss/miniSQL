@@ -188,16 +188,16 @@ namespace record{
 			remove(fileName.c_str());
 	}//TODO: check
 
-	std::pair<bool, RelationManager::TupleConstIter> RelationManager::getFirstTuple(size_t block_num){
+	std::pair<bool, RelationManager::TupleIter> RelationManager::getFirstTuple(size_t block_num){
 		if(!readBlock(block_num) || getBlock(block_num).tuples.empty()) //no such file or no tuples
-			return std::pair<bool, RelationManager::TupleConstIter>(false, TupleSet().end());
+			return std::pair<bool, RelationManager::TupleIter>(false, TupleSet().end());
 		else
-			return std::pair<bool, RelationManager::TupleConstIter>(false, getBlock(block_num).tuples.begin());
+			return std::pair<bool, RelationManager::TupleIter>(false, getBlock(block_num).tuples.begin());
 	}
 
-	std::pair<bool, RelationManager::TupleConstIter> RelationManager::getNextTuple(TupleConstIter tuple){
+	std::pair<bool, RelationManager::TupleIter> RelationManager::getNextTuple(TupleIter tuple){
 		if(tuple != tuple->block->tuples.end()) //not reach the end of the block yet
-			return std::pair<bool, RelationManager::TupleConstIter>(true, ++tuple);
+			return std::pair<bool, RelationManager::TupleIter>(true, ++tuple);
 		else{//get next block
 			return getFirstTuple(tuple->block->header.number);
 		}

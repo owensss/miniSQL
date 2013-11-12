@@ -2,35 +2,27 @@
 #include "BufferManager.hpp"
 #include <string>
 #include <map>
+#include <algorithm>
+#include <list>
 
 namespace catalog{
 struct Field{
 public:
 	enum field_type{INT, CHARS, FLOAT};
 public://if not chars then pass 0 to char_n
-	Field(std::string& name, field_type type, size_t char_n, bool unique)
-		: name(name), type(type), char_n(char_n), unique(unique){};
+	Field(std::string& name, field_type type, size_t char_n, bool unique, size_t num)
+		: name(name), type(type), char_n(char_n), unique(unique), num(num){};
 	Field(){}
 public:
 	std::string name;
 	field_type type;
-	size_t char_n; //not consider '\0', stored also as char_n bytes
+	uint8_t char_n; //not consider '\0', stored also as char_n bytes
 	bool unique;
+	uint32_t num;	//order number in the catalog
 };
 
 //return the len of the field
-inline size_t getFieldLen(const Field& field){
-	switch(field.type){
-	case Field::FLOAT:
-	case Field::INT:
-		return 4;
-	case Field::CHARS:
-		return field.char_n;
-	default:
-		//should not occur
-		return 0;
-	}
-}
+size_t getFieldLen(const Field& field);
 
 struct MetaRelation;
 struct IndexInfo{
@@ -81,6 +73,10 @@ inline size_t getTupleLen(const MetaRelation& relation){
 	}
 	return len;
 }
+
+//get a list sorted with num order from the original map
+extern std::list<Field> get_sorted_field_list(const MetaRelation::fieldSet& fields);
+extern size_t get_field_offset(const std::list<Field> & fieldList, const Field *field);
 } // catalog
 
 /** to create Relation or index info, user should first create field by themselves

@@ -1,4 +1,5 @@
 #include "RecordManager.hpp"
+#include <algorithm>
 
 const std::string RecordManager::directoryName = "record";
 
@@ -14,16 +15,15 @@ namespace{
 		size_t tupleLen = catalog::getTupleLen(catalogManager->getRelationInfo(relationName));
 		DataPtr data = new byte[tupleLen];
 		DataPtr ptr = data;
-		auto &fields = relationInfo.fields;
+		std::list<catalog::Field> fields = get_sorted_field_list(relationInfo.fields);
 		auto &iter = datas.begin();
-		for(auto &fieldPair: fields){
-			auto &field = fieldPair.second;
+		for(auto &field: fields){
 			switch(field.type){
 			case catalog::Field::CHARS:
 				{
 					auto str = iter->str;
 					auto size = field.char_n;
-					blockReadWrite::writeBuffer(ptr, (DataPtr)str, std::min(strlen(str)+1, size));
+					blockReadWrite::writeBuffer(ptr, (DataPtr)str, std::min(strlen(str)+1, (size_t) size));
 					delete []str; //delete those string
 					ptr += size;
 				}
@@ -44,17 +44,15 @@ namespace{
 
 	std::list<DataUnit> tupleToDataUnit(const std::string& relationName, const record::Tuple& tuple, CatalogManager *catalogManager){
 		auto &relationInfo = catalogManager->getRelationInfo(relationName);
-		auto &fields = relationInfo.fields;
+		std::list<catalog::Field> fields = get_sorted_field_list(relationInfo.fields);
 		const DataPtr tupleData = tuple.GetData();
 		auto ptr = tupleData;
 		std::list<DataUnit> dataUnitList;
-		for(auto& fieldPair : fields){
-			auto& field = fieldPair.second;
-
+		for(auto& field : fields){
 			switch(field.type){
 			case catalog::Field::CHARS:{
 					size_t char_n = field.char_n;
-					char* str = new char[char_n];
+					char* str = new char[char_n];//may not end with '\0'
 					ptr = blockReadWrite::readBuffer(ptr, (DataPtr)str, char_n);
 					dataUnitList.push_back(DataUnit(str)); }
 				break;
@@ -85,13 +83,31 @@ RecordManager::~RecordManager(void)
 {
 }
 
+namespace {
+	
+}
+
 void RecordManager::deleteTuples(const std::string& table_name, const std::list<Condition>& conditions){
 	addRelation(table_name);
-	auto& relation = relations.at(table_name);
-	auto& res = relation.getFirstTuple();
-	auto& iter = conditions.begin();
-	while(res.first){
-		//test condition
+	auto& relationManager = relations.at(table_name);
+	auto& relationInfo = catalogManager->getRelationInfo(table_name);
+	auto fieldList = catalog::get_sorted_field_list(relationInfo.fields);//ordered list of fields
+
+	auto tuple_res = relationManager.getFirstTuple();
+	while(tuple_res.first){//get tuple
+		auto dataUnitList = tupleToDataUnit(table_name, *tuple_res.second, catalogManager);
+		auto& iter = conditions.begin();
+		auto& end = conditions.end();
+		for(	; iter != end; iter++){
+			auto field = iter->getField();
+			auto &dataUnitIter = dataUnitList.begin();
+			std::advance(dataUnitIter, field->num);
+			DataUnit data = *dataUnitIter;
+			if(!iter->test(data))
+				break;
+		}
+		if(iter == conditions.end()) //pass all test
+			relationManager.deleteTuple(tuple_res.second);
 	}
 }
 
