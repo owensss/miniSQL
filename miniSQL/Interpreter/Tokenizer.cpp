@@ -69,7 +69,6 @@ Tokenizer::tokenlist_type Tokenizer::tokenize(const char* input) const {
  * the function skips skippers, and increase row count by newline indicator
  * this function does not check separator
  */
-#include <iostream>
 auto Tokenizer::do_tokenize(const char* token, int start_row, int start_col) const
 	-> tokenlist_type 
 {
@@ -98,7 +97,7 @@ auto Tokenizer::do_tokenize(const char* token, int start_row, int start_col) con
 			else if (isalpha(c) || c == '_') p = parseWord(iter, tk);
 			else if (c == '\"') p = parseQuote(iter, tk);
 			else if (c == '\'') p = parseSingleQuote(iter, tk);
-			else { tk.value = c; tk.type = token_enum::Symbol; ++p; }
+			else p = parseSymbol(iter, tk);
 			// set row & col
 			tk.col = col;
 			tk.row = row;
@@ -125,7 +124,9 @@ const char* Tokenizer::parseInt(const char* start, token& result) const {
 		char c = *p;
 		
 		if (! isdigit(c)) {
-			if (c == '.') return parseDouble(start, result);
+			if (c == '.' && *(p+1) != '\0' && *(p+1) >= '0' && *(p+1) <= '9') {
+				return parseDouble(start, result);
+			}
 			else break;
 		}
 	}
@@ -163,6 +164,7 @@ const char* Tokenizer::parseQuote(const char* start, token& result) const {
 
 	/* left quote */
 	if (*start != '\"') return start;
+	++p;
 	for (; *p != '\0'; ++p) {
 		char c = *p;
 
@@ -185,6 +187,7 @@ const char* Tokenizer::parseSingleQuote(const char* start, token& result) const 
 
 	/* left quote */
 	if (*start != '\'') return start;
+	++p;
 	for (; *p != '\0'; ++p) {
 		char c = *p;
 
@@ -197,7 +200,7 @@ const char* Tokenizer::parseSingleQuote(const char* start, token& result) const 
 		}
 	}
 
-	assign_result(token_enum::Quote);
+	assign_result(token_enum::SingleQuote);
 
 	return p;
 }
@@ -215,4 +218,82 @@ const char* Tokenizer::parseWord(const char* start, token& result) const {
 	
 	assign_result(token_enum::Word);
 	return p;
+}
+
+/**
+ * only the following symbols are allowed:
+ * every other token,
+ * ==, >=, <=, <, >, =, !=, ++, --, *=, /=, -=, +=, ^=, &=, |=, ~=, %=
+ * ===
+ */
+const char* Tokenizer::parseSymbol(const char* start, token& result) const {
+	const char* p = start;
+
+	/** first */
+	switch (*p) {
+	case '=':
+		++p;
+		if (*p == '\0' || *p != '=') {
+			assign_result(token_enum::Symbol);
+			return p;
+		} else { // ==
+			++p;
+			if (*p == '\0' || *p != '=') {
+				assign_result(token_enum::Symbol);
+				return p;
+			} else { // ===
+				++p;
+				assign_result(token_enum::Symbol);
+				return p;
+			}
+		}
+		break;
+	case '>':
+	case '<':
+	case '!':
+	case '*':
+	case '/':
+	case '\\':
+	case '|':
+	case '&':
+	case '%':
+	case '~':
+		++p;
+		if (*p == '\0' || *p != '=') {
+			assign_result(token_enum::Symbol);
+			return p;
+		} else { // x=
+			++p;
+			assign_result(token_enum::Symbol);
+			return p;
+		}
+		break;
+	case '+':
+		++p;
+		if (*p == '\0' || (*p != '+' && *p != '=')) {
+			assign_result(token_enum::Symbol);
+			return p;
+		} else { // ++, +=
+			++p;
+			assign_result(token_enum::Symbol);
+			return p;			
+		}
+		break;
+	case '-':
+		++p;
+		if (*p == '\0' || (*p != '-' && *p != '=')) {
+			assign_result(token_enum::Symbol);
+			return p;
+		} else { // --, -=
+			++p;
+			assign_result(token_enum::Symbol);
+			return p;			
+		}
+	default:
+		++p;
+		assign_result(token_enum::Symbol);
+		return p;
+	}
+	
+	return nullptr;
 }

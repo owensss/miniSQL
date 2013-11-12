@@ -3,8 +3,6 @@
 #include "parse_exception.h"
 #include "..\miniSQL\api.hpp"
 
-#include <iostream>
-
 using namespace std;
 
 bool Interpreter::interprete(const std::string& input) const {
@@ -31,9 +29,6 @@ Interpreter::tokenlist_type Interpreter::tokenize(const statement_type& stmt) co
 
 bool Interpreter::PaRsE(const tokenlist_type& tokens) const {
 	SqlRule rule(&tokens, tokens.begin());
-	
-	for (auto tk : tokens)
-		cerr << tk.value << endl;
 
 	if (rule.isEnd()) return true;
 
@@ -46,21 +41,24 @@ bool Interpreter::PaRsE(const tokenlist_type& tokens) const {
 	else if (rule.test_quit()) {
 		parseQuit(tokens, rule);
 		return false;
-	}
+	} else throw unexpected_token_exception(*rule.getIter(), "select, create, insert, delete, drop, execfile, quit");
 	
+	if (! rule.isEnd()) throw unexpected_token_exception(*rule.getIter(), "end of statement");
+
 	return true;
 }
 
 void Interpreter::parseSelect(const tokenlist_type& tokens, SqlRule& rule) const {
 	std::string tablename = "";
-	cerr << "parse select\n";
 	rule.select().star().from().parseString(tablename);
 
-	cerr << rule.isEnd();
 	if (rule.isEnd()) api->selectFrom(tablename);
 	else if (rule.test_where()) {
 		std::list<detail::Condition> conds;
+		rule.advance();
 
+		if (rule.isEnd())
+			throw unexpected_end_of_input_exception(*--rule.getIter(), "an attribute name");
 		// attr_name-operator-value
 		while (1) {
 			detail::Condition cond;
@@ -73,7 +71,7 @@ void Interpreter::parseSelect(const tokenlist_type& tokens, SqlRule& rule) const
 			}
 			else rule.and();
 		}
-	}
+	} else throw unexpected_token_exception(*rule.getIter(), "'where' or end of input");
 }
 
 void Interpreter::parseCreate(const tokenlist_type& tokens, SqlRule& rule) const {
@@ -96,7 +94,7 @@ void Interpreter::parseCreateTable(const tokenlist_type& tokens, SqlRule& rule) 
 	typedef catalog::Field Field;
 	fieldSet set;
 
-	// attrname-type-comma-[opt]unique loop
+	// attrname-type-[opt]unique-comma loop
 	while (1) {
 		if (rule.isEnd())
 			throw unexpected_end_of_input_exception(*--rule.getIter(), "attribute name or key word 'primary'");
@@ -104,8 +102,8 @@ void Interpreter::parseCreateTable(const tokenlist_type& tokens, SqlRule& rule) 
 			break; // parse primary key
 		} else if (rule.testString()) { // loop
 			Field f;
+			// attrname
 			rule.parseString(f.name);
-			rule.advance();
 			if (rule.isEnd())
 				throw unexpected_end_of_input_exception(*--rule.getIter(), "a type");
 			if (rule.test_int()) {
@@ -126,7 +124,8 @@ void Interpreter::parseCreateTable(const tokenlist_type& tokens, SqlRule& rule) 
 			} else if (rule.test_char()) {
 				f.type = Field::field_type::CHARS;
 				int char_n = 0;
-				rule.lbracket().parseInt(char_n).rbracket();
+
+				rule.advance().lbracket().parseInt(char_n).rbracket();
 				f.char_n = char_n;
 
 				if (rule.isEnd())
@@ -155,8 +154,8 @@ void Interpreter::parseCreateTable(const tokenlist_type& tokens, SqlRule& rule) 
 				f.char_n = 0;
 				f.num = num++;
 				set.insert(std::make_pair(f.name, f));
-			}
-		}
+			} else throw unexpected_token_exception(*rule.getIter(), "a type");
+		} else throw unexpected_token_exception(*rule.getIter(), "a word, or 'primary'");
 	}
 
 	std::string pri_key;
@@ -177,15 +176,26 @@ void Interpreter::parseInsert(const tokenlist_type& tokens, SqlRule& rule) const
 	std::string tablename;
 	rule.insert().into().parseString(tablename).values().lbracket();
 
+	std::list<token> datas;
 	while (1) {
-		
+		token t;
+		rule.parseValue(t);
+		datas.push_back(t);
+		if (rule.isEnd())
+			throw unexpected_end_of_input_exception(*--rule.getIter(), "',' or ')'");
+		if (rule.test_comma()) rule.advance();
+		else if (rule.test_rbracket()) {
+			rule.rbracket();
+			api->insertInto(tablename, datas);
+			return;
+		} else throw unexpected_token_exception(*rule.getIter(), "expect ',' or ')'");
 	}
 }
 
 void Interpreter::parseDrop(const tokenlist_type& tokens, SqlRule& rule) const {
 	rule.advance();
 	if (rule.isEnd())
-		throw unexpected_end_of_input_exception(token(), "'table' or 'index'");
+		throw unexpected_end_of_input_exception(*--rule.getIter(), "'table' or 'index'");
 
 	if (rule.test_table()) parseDropTable(tokens, rule);
 	else if (rule.test_index()) parseDropIndex(tokens, rule);
@@ -210,17 +220,33 @@ void Interpreter::parseDelete(const tokenlist_type& tokens, SqlRule& rule) const
 	std::string tablename;
 	rule._delete().from().parseString(tablename);
 	if (rule.test_where()) {
+		std::list<detail::Condition> conds;
+		rule.advance();
 
+		if (rule.isEnd())
+			throw unexpected_end_of_input_exception(*--rule.getIter(), "an attribute name");
+		// attr_name-operator-value
+		while (1) {
+			detail::Condition cond;
+
+			rule.parseString(cond.name).parseOperator(cond.op).parseValue(cond.value);
+			conds.push_back(cond);
+			if (rule.isEnd()) {
+				api->deleteFromTable(tablename, conds);
+				break;
+			}
+			else rule.and();
+		}
 	} else {
 		api->deleteFromTable(tablename);
 	}
 }
 
-void Interpreter::parseExecfile(const tokenlist_type& tokens, SqlRule& rule) const {
+bool Interpreter::parseExecfile(const tokenlist_type& tokens, SqlRule& rule) const {
 	std::string filename;
-	rule.execfile().parseString(filename);
+	rule.execfile().parseFilename(filename);
 
-	api->execfile(filename);
+	return api->execfile(filename);
 }
 
 void Interpreter::parseQuit(const tokenlist_type& tokens, SqlRule& rule) const {

@@ -67,7 +67,7 @@ private:
 	void parseInsert(const tokenlist_type& tokens, SqlRule& rule) const;
 	void parseDelete(const tokenlist_type& tokens, SqlRule& rule) const;
 	void parseQuit(const tokenlist_type& tokens, SqlRule& rule) const;
-	void parseExecfile(const tokenlist_type& tokens, SqlRule& rule) const;
+	bool parseExecfile(const tokenlist_type& tokens, SqlRule& rule) const;
 private:
 	Tokenizer tokenizer;
 	api::Api* api;
